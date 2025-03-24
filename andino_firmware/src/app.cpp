@@ -131,6 +131,7 @@ void App::setup() {
 
   left_encoder_.begin();
   right_encoder_.begin();
+  Serial.println("start");
 
   left_motor_.begin();
   left_motor_.enable(true);
