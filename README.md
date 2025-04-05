@@ -9,10 +9,10 @@ MEPhI_ROS2_drone - это двухколесный робот с открыты�
 </p>
 
 ## Описание проекта
-- [`3D модель`](./3D): 3D модели деталей и сборка робота, также содержит `.STL` для 3D печати и `.dxf` для лазерной резки
-- [`Электрическая схема`](./Schematic): электрическая схема робота `.pdf`
+- [`3D`](./3D): 3D модели деталей и сборки робота, также содержит `.stl` для 3D печати и `.dxf` для лазерной резки
+- [`schematic`](./schematic): электрическая схема робота `.pdf`
+- [`andino_hardware`](./andino_hardware): содержит инструкцию по сборке `MEPhI_ROS2_drone` и перечень используемого оборудования
 - [`andino_bringup`](./andino_bringup): сдержит в основном файлы запуска для старта всех связанных драйверов и узлов, которые будут использоваться в роботе
-- [`andino_hardware`](./andino_hardware): содержит информацию о сборке `MEPhI_ROS2_drone` и деталях оборудования
 - [`andino_description`](./andino_description): содержит описание робота в формате `.URDF`
 - [`andino_firmware`](./andino_firmware): содержит код для выполнения на Arduino UNO для сопряжения с raspberry pi 4
 - [`andino_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
@@ -193,25 +193,3 @@ https://github.com/Ekumen-OS/andino/assets/53065142/d73f6053-b422-4334-8f62-029a
 
 
 See [`andino_slam`](./andino_slam/) for more information.
-
-## :robot: Share your Andino!
-
-Have you built your `Andino` already? Please go to [`Show & Tell`](https://github.com/Ekumen-OS/andino/discussions/categories/show-and-tell) Discussion and share with us your own version of it.
-
-
-## :star2: Inspirational sources
-
-This section is dedicated to recognizing and expressing gratitude to the open-source repositories that have served as a source of inspiration for this project. We highly recommend exploring these repositories for further inspiration and learning.
-
- * [articubot_one](https://github.com/joshnewans/articubot_one)
- * [diffbot](https://github.com/ros-mobile-robots/diffbot)
- * [noah_hardware](https://github.com/GonzaCerv/noah-hardware)
- * [linorobot](https://github.com/linorobot/linorobot2)
-
-## :raised_hands: Contributing
-
-Issues or PRs are always welcome! Please refer to [CONTRIBUTING](CONTRIBUTING.md) doc.
-
-## Code development
-
-Note that a [`Docker`](./docker) folder is provided for easy setting up the workspace.
