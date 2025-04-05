@@ -1,8 +1,4 @@
-<div align="center">
-
-  ![Logo White](./docs/logo_white.svg#gh-dark-mode-only)
-
-</div>
+# MEPhI_ROS2_drone
 
 <div align="center">
 
