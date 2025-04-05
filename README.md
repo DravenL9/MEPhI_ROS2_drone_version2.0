@@ -1,33 +1,25 @@
 # MEPhI_ROS2_drone
 
-<div align="center">
-
-  ![Logo Black](./docs/logo_black.svg#gh-light-mode-only)
-
-</div>
-
 MEPhI_ROS2_drone - это двухколесный робот с открытым исходным кодом, разработанный для образовательных целей командой студентов из НИЯУ МИФИ. MEPhI_ROS2_drone полностью интегрирован с ROS2 и является отличной базовой платформой для плавного введения в ROS2. Благодаря открытому коду и исходным файлам 3D моделей любой желающий может модифицировать и настроить робота в соответствии со своими требованиями.
 
 *Данный проект является форком проекта [Andino](https://github.com/Ekumen-OS/andino), ПО, конструкция и электрическая схема которого были доработаны под наши требования.
 
 <p align="center">
-  <img src="docs/real_robot.png" width=500 />
+  <img src="docs/render.png" width=700 />
 </p>
 
-_Note: For videos go to [Media](#selfie-media) section._
-
-## :books: Package Summary
-
-- :rocket: [`andino_bringup`](./andino_bringup): Contains mainly launch files in order to launch all related driver and nodes to be used in the real robot.
-- :robot: [`andino_hardware`](./andino_hardware): Contains information about the Andino assembly and hardware parts.
-- :ledger: [`andino_description`](./andino_description): Contains the URDF description of the robot.
-- :hammer_and_pick: [`andino_firmware`](./andino_firmware): Contains the code be run in the microcontroller for interfacing low level hardware with the SBC.
-- :gear: [`andino_base`](./andino_base): [ROS Control hardware interface](https://control.ros.org/master/doc/ros2_control/hardware_interface/doc/writing_new_hardware_interface.html) is implemented.
-- :control_knobs: [`andino_control`](./andino_control/): It launches the [`controller_manager`](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) along with the [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html).
-- :computer: [`andino_gz_classic`](./andino_gz_classic/): [Gazebo Classic](https://classic.gazebosim.org/) simulation of the `andino` robot.
-- :world_map: [`andino_slam`](./andino_slam/): Provides support for SLAM with your `andino` robot.
-- :compass: [`andino_navigation`](./andino_navigation/): Navigation stack based on `nav2`.
-- :exclamation: [`andino_apps`](./andino_apps/): Integrated applications with the `andino` robot.
+## Описание проекта
+- [`3D модель`](./3D_модель): 3D модели деталей и сборка робота, также содержит STL для 3D печати и .dxf для лазерной резки
+- [`andino_bringup`](./andino_bringup): Содержит в основном файлы запуска для запуска всех связанных драйверов и узлов, которые будут использоваться в реальном роботе
+- [`andino_hardware`](./andino_hardware): Содержит информацию о сборке Andino и деталях оборудования
+- [`andino_description`](./andino_description): Содержит описание робота в формате URDF
+- :hammer_and_pick: [`andino_firmware`](./andino_firmware): Содержит код для выполнения на Arduino UNO для сопряжения с raspberry pi 4
+- [`andino_base`](./andino_base): [ROS Control hardware interface](https://control.ros.org/master/doc/ros2_control/hardware_interface/doc/writing_new_hardware_interface.html) is implemented.
+- [`andino_control`](./andino_control/): It launches the [`controller_manager`](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) along with the [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html).
+- [`andino_gz_classic`](./andino_gz_classic/): [Gazebo Classic](https://classic.gazebosim.org/) simulation of the `andino` robot.
+- [`andino_slam`](./andino_slam/): Provides support for SLAM with your `andino` robot.
+- [`andino_navigation`](./andino_navigation/): Navigation stack based on `nav2`.
+- [`andino_apps`](./andino_apps/): Integrated applications with the `andino` robot.
 
 ## :paperclips: Related projects
 
