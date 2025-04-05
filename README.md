@@ -9,41 +9,18 @@ MEPhI_ROS2_drone - это двухколесный робот с открыты�
 </p>
 
 ## Описание проекта
-- [`3D модель`](./3D_модель): 3D модели деталей и сборка робота, также содержит STL для 3D печати и .dxf для лазерной резки
-- [`andino_bringup`](./andino_bringup): Содержит в основном файлы запуска для запуска всех связанных драйверов и узлов, которые будут использоваться в реальном роботе
-- [`andino_hardware`](./andino_hardware): Содержит информацию о сборке Andino и деталях оборудования
-- [`andino_description`](./andino_description): Содержит описание робота в формате URDF
-- :hammer_and_pick: [`andino_firmware`](./andino_firmware): Содержит код для выполнения на Arduino UNO для сопряжения с raspberry pi 4
-- [`andino_base`](./andino_base): [ROS Control hardware interface](https://control.ros.org/master/doc/ros2_control/hardware_interface/doc/writing_new_hardware_interface.html) is implemented.
-- [`andino_control`](./andino_control/): It launches the [`controller_manager`](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) along with the [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html).
-- [`andino_gz_classic`](./andino_gz_classic/): [Gazebo Classic](https://classic.gazebosim.org/) simulation of the `andino` robot.
-- [`andino_slam`](./andino_slam/): Provides support for SLAM with your `andino` robot.
-- [`andino_navigation`](./andino_navigation/): Navigation stack based on `nav2`.
-- [`andino_apps`](./andino_apps/): Integrated applications with the `andino` robot.
+- [`3D модель`](./3D): 3D модели деталей и сборка робота, также содержит `.STL` для 3D печати и `.dxf` для лазерной резки
+- [`Электрическая схема`](./Schematic): электрическая схема робота `.pdf`
+- [`andino_bringup`](./andino_bringup): сдержит в основном файлы запуска для старта всех связанных драйверов и узлов, которые будут использоваться в роботе
+- [`andino_hardware`](./andino_hardware): содержит информацию о сборке `MEPhI_ROS2_drone` и деталях оборудования
+- [`andino_description`](./andino_description): содержит описание робота в формате `.URDF`
+- [`andino_firmware`](./andino_firmware): содержит код для выполнения на Arduino UNO для сопряжения с raspberry pi 4
+- [`andino_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
+- [`andino_control`](./andino_control/): запускает [controller_manager](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) вместе с [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html)
+- [`andino_slam`](./andino_slam/): обеспечивает работу SLAM (одновременная локализация и построение карты)
+- [`andino_navigation`](./andino_navigation/): стек навигации, основанный на `nav2`
 
-## :paperclips: Related projects
-
-Other projects built upon Andino! :rocket:
-
-- :rocket: [`andino_ansible_config`](https://github.com/garyservin/andino_ansible_config): (**Thanks @garyservin !**): Ansible configuration to easily setup an Andino robot.
-- :computer: [`andino_gz`](https://github.com/Ekumen-OS/andino_gz): [Gazebo](https://gazebosim.org/home)(non-classic)-based simulation of the `andino` robot.
-- :lady_beetle: [`andino_webots`](https://github.com/Ekumen-OS/andino_webots): [Webots](https://github.com/cyberbotics/webots)-based simulation of the Andino robot fully integrated with ROS 2.
-- :joystick: [`andino_o3de`](https://github.com/Ekumen-OS/andino_o3de): [O3DE](https://o3de.org/)-based simulation of the Andino robot.
-- :green_circle: [`andino_isaac`](https://github.com/Ekumen-OS/andino_isaac): [Isaac Sim](https://docs.omniverse.nvidia.com/isaacsim/latest/index.html)-based simulation of the Andino robot.
-- :m: [`andino_mujoco`](https://github.com/Ekumen-OS/andino_mujoco): [MuJoCo](https://mujoco.org/)-based simulation of the Andino robot.
-- :robot: [`andino_rmf`](https://github.com/Ekumen-OS/andino_rmf): [OpenRMF](https://www.open-rmf.org/) integration of Andino simulation.
-- :test_tube: [`andino_integration_tests`](https://github.com/Ekumen-OS/andino_integration_tests): Extension to the Andino robot showing how to build integration tests.
-
-## :busts_in_silhouette: Community
-
-[<img src="docs/discord-mark-blue.png" width=30 hspace="20"/>](https://discord.gg/tHhH32CTHu) Join our Discord and contribute to the community!
-
-
-## :pick: Robot Assembly
-
-Visit [`andino_hardware`](./andino_hardware/) for assembly instructions.
-
-## :mechanical_arm: Installation
+## Установка
 
 Remember to first go over the assembly instructions at [`andino_hardware`](./andino_hardware/)!
 
