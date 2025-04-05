@@ -6,9 +6,7 @@
 
 </div>
 
-Andino is a fully open-source diff drive robot designed for educational purposes and low-cost applications.
-It is fully integrated with ROS 2 and it is a great base platform to improve skills over the robotics field.
-With its open-source design, anyone can modify and customize the robot to suit their specific needs.
+MEPhI_ROS2_drone - это двухколесный робот с открытым исходным кодом, разработанный для образовательных целей командой студентов из НИЯУ МИФИ. Данный проект является форком проекта [Andino](https://github.com/Ekumen-OS/andino) MEPhI_ROS2_drone полностью интегрирован с ROS2 и является отличной базовой платформой для плавного введения в ROS2. Благодаря открытому исходному коду и САПР файлам 3D моделей любой желающий может модифицировать и настроить робота в соответствии со своими требованиями.
 
 <p align="center">
   <img src="docs/real_robot.png" width=500 />
