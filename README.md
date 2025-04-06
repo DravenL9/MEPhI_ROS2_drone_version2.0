@@ -22,12 +22,17 @@
 
 ## Видеоматериалы работы
 
-### отображение LaserScan в rviz2
+### Отображение LaserScan в rviz2
 
-<iframe width="640" height="360" 
-  src="https://youtu.be/dyld3nLJG04"
-  frameborder="0" allowfullscreen>
-</iframe>
+[![LaserScan](https://img.youtube.com/vi/dyld3nLJG04/0.jpg)](https://youtu.be/dyld3nLJG04)
+
+### Построение карты в ручном режиме
+
+[![LaserScan](https://img.youtube.com/vi/CHcgCHSs_-0/0.jpg)](https://youtu.be/CHcgCHSs_-0)
+
+### Автономное движение по карте
+
+[![LaserScan](https://img.youtube.com/vi/ocD7KzcdPOI/0.jpg)](https://youtu.be/ocD7KzcdPOI)
 
 ## Сборка MEPhI_ROS2_drone
 
