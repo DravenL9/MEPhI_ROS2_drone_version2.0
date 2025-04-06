@@ -10,11 +10,11 @@ MEPhI_ROS2_drone - это двухколесный робот с открыты�
 
 ## Описание проекта
 - [`3D`](./3D): 3D модели деталей и сборки робота, также содержит `.stl` для 3D печати и `.dxf` для лазерной резки
-- [`schematic`](./schematic): электрическая схема робота `.pdf`
+- [`schematic`](./schematic): электрическая схема робота и инструкция по ее сборке
 - [`andino_hardware`](./andino_hardware): содержит инструкцию по сборке `MEPhI_ROS2_drone` и перечень используемого оборудования
 - [`andino_bringup`](./andino_bringup): сдержит в основном файлы запуска для старта всех связанных драйверов и узлов, которые будут использоваться в роботе
 - [`andino_description`](./andino_description): содержит описание робота в формате `.URDF`
-- [`andino_firmware`](./andino_firmware): содержит код для выполнения на Arduino UNO для сопряжения с raspberry pi 4
+- [`andino_firmware`](./andino_firmware): содержит код отладочной платы Arduino UNO R3 для сопряжения с raspberry pi 4 и инструкцию по его заливке на плату
 - [`andino_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
 - [`andino_control`](./andino_control/): запускает [controller_manager](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) вместе с [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html)
 - [`andino_slam`](./andino_slam/): обеспечивает работу SLAM (одновременная локализация и построение карты)
