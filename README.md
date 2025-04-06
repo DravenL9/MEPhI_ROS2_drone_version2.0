@@ -13,7 +13,7 @@ MEPhI_ROS2_drone - это двухколесный робот с открыты�
 - [`schematic`](./schematic): электрическая схема робота и инструкция по ее сборке
 - [`MEPhI_ROS2_drone_hardware`](./andino_hardware): содержит инструкцию по сборке `MEPhI_ROS2_drone` и перечень используемого оборудования
 - [`MEPhI_ROS2_drone_firmware`](./andino_firmware): содержит код отладочной платы Arduino UNO R3 для сопряжения с raspberry pi 4 и инструкцию по его заливке на плату
-- [`MEPhI_ROS2_drone_bringup`](./andino_bringup): сдержит в основном файлы запуска для старта всех связанных драйверов и узлов, которые будут использоваться в роботе
+- [`MEPhI_ROS2_drone_bringup`](./andino_bringup): содержит в основном файлы запуска для старта всех связанных драйверов и узлов, которые будут использоваться в роботе
 - [`MEPhI_ROS2_drone_description`](./andino_description): содержит описание робота в формате `.URDF`
 - [`MEPhI_ROS2_drone_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
 - [`MEPhI_ROS2_drone_control`](./andino_control/): запускает [controller_manager](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) вместе с [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html)
@@ -49,6 +49,7 @@ lsb_release -a
 ```
 ping google.com
 ```
+
 ## Настройка USB портов
 
 Назначьте фиксированные имена USB-портам для стабильного распознавания устройств в ROS2.
@@ -68,188 +69,182 @@ crw-rw---- 1 root dialout 188, 1 Apr 06 03:10 /dev/ttyUSB1
  - Повторите для Arduino
  - Пример: `/dev/ttyUSB0 = Arduino`, `/dev/ttyUSB1 = RPLIDAR`
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Platforms
-
-- ROS 2: Humble Hawksbill
-- OS:
-  - Ubuntu 22.04 Jammy Jellyfish
-  - Ubuntu Mate 22.04 (On real robot (e.g: Raspberry Pi 4B))
-
-### Via ansible
-
-See [`andino_ansible_config`](https://github.com/garyservin/andino_ansible_config): This repository contains Ansible configurations for managing and automating the setup and configuration of an Andino robot.
-
-### Build from Source
-
-#### Dependencies
-
-1. Install [ROS 2](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
-2. Install [colcon](https://colcon.readthedocs.io/en/released/user/installation.html)
-
-#### colcon workspace
-
-Packages here provided are colcon packages. As such a colcon workspace is expected:
-
-1. Create colcon workspace
-
+4. Получите идентификаторы устройств:
 ```
-mkdir -p ~/ws/src
+udevadm info --name=/dev/ttyUSB0 --attribute-walk | grep -i "serial\|vendor"
+```
+Пример для Arduino:
+```
+ATTRS{serial}=="A1234567"
+ATTRS{vendor}=="Arduino"
+```
+Пример для RPLIDAR:
+```
+ATTRS{serial}=="B7890123"
+ATTRS{vendor}=="SLAMTEC"
+```
+5. Создайте правила udev:
+ - Отредактируйте файл правил:
+ ```
+ sudo nano /etc/udev/rules.d/99-usb-serial.rules
+ ```
+ - Добавьте (замените serial на ваши значения):
+```
+SUBSYSTEM=="tty", ATTRS{serial}=="A1234567", SYMLINK+="ttyUSB_ARDUINO"
+SUBSYSTEM=="tty", ATTRS{serial}=="B7890123", SYMLINK+="ttyUSB_LIDAR"
+```
+- Сохраните (Ctrl+O, Enter, Ctrl+X)
+
+6. Перезагрузите правила:
+```
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+7. Проверьте новые имена:
+```
+ls -l /dev/ttyUSB*
+```
+Ожидаемый вывод:
+```
+lrwxrwxrwx 1 root root 7 Apr 06 03:15 /dev/ttyUSB_ARDUINO -> ttyUSB0
+lrwxrwxrwx 1 root root 7 Apr 06 03:15 /dev/ttyUSB_LIDAR -> ttyUSB1
 ```
 
-2. Clone this repository in the `src` folder
+## Прошивка отладочной платы Arduino UNO R3
 
+Следуйте руководству в [`MEPhI_ROS2_drone_firmware`](./andino_firmware)
+
+## Установка ROS2 Humble
+
+### Шаг 1: Установка зависимостей
+1. Настройте локализацию:
 ```
-cd ~/ws/src
+sudo apt update && sudo apt install -y locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+```
+2. Добавьте репозиторий ROS2:
+```
+sudo apt install -y software-properties-common
+sudo add-apt-repository universe
+sudo apt update && sudo apt install -y curl gnupg lsb-release
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+```
+### Шаг 2: Установка ROS2
+1. Установите ROS2 Humble Desktop:
+```
+sudo apt update
+sudo apt install -y ros-humble-desktop
+```
+2. Установите инструменты разработки:
+```
+sudo apt install -y python3-colcon-common-extensions python3-rosdep python3-vcstool
+```
+3. Инициализируйте rosdep:
+```
+sudo rosdep init
+rosdep update
+```
+4. Настройте окружение:
+```
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 ```
 
+## Сборка рабочего пространства MEPhI_ROS2_drone
+### Шаг 1: Клонирование репозитория
+1. Создайте рабочее пространство:
 ```
-git clone https://github.com/Ekumen-OS/andino.git
+mkdir -p ~/MEPhI_ROS2_drone_ws/src
+cd ~/MEPhI_ROS2_drone_ws/src
 ```
-
-3. Install dependencies via `rosdep`
-
+2. Склонируйте репозиторий:
 ```
-cd ~/ws
+git clone -b humble https://github.com/Muhamedli/MEPhI_ROS2_drone.git
 ```
-
+### Шаг 2: Установка зависимостей
+1. Установите зависимости ROS:
 ```
-rosdep install --from-paths src --ignore-src -i -y
+cd ~/MEPhI_ROS2_drone_ws
+rosdep install --from-paths src --ignore-src -r -y
 ```
-
-4. Build the packages
-
+### Шаг 3: Сборка
+1. Соберите проект:
 ```
 colcon build
 ```
-
-5. Finally, source the built packages
-   If using `bash`:
-
+2. Подгрузите окружение:
 ```
-source install/setup.bash
+echo "source ~/MEPhI_ROS2_drone_ws/install/setup.bash" >> ~/.bashrc
+source ~/MEPhI_ROS2_drone_ws/install/setup.bash
 ```
 
-`Note`: Whether your are installing the packages in your dev machine or in your robot the procedure is the same. Remember to go over the assembly instructions first.
+## Настройка и запуск SLAM
+SLAM позволяет роботу строить карту неизвестной среды и одновременно определять свое местоположение. В этом разделе используется пакет MEPhI_ROS2_drone_slam с алгоритмом Cartographer.
 
-### Install the binaries
-
-The packages have been also released via ROS package manager system for the 'humble' distro. You can check them [here](https://repo.ros2.org/status_page/ros_humble_default.html?q=andino).
-
-These packages can be installed using `apt` (e.g: `sudo apt install ros-humble-andino-description`) or using `rosdep`.
-
-## :rocket: Usage
-
-### Robot bringup
-
-`andino_bringup` contains launch files that concentrates the process that brings up the robot.
-
-After installing and sourcing the andino's packages simply run.
-
+### Шаг 1: Запуск базовых узлов
+1. Запустите базовые узлы робота:
 ```
 ros2 launch andino_bringup andino_robot.launch.py
 ```
+Это активирует узлы для работы с двигателями и лидаром.
 
-This launch files initializes the differential drive controller and brings ups the system to interface with ROS.
-By default sensors like the camera and the lidar are initialized. This can be disabled via arguments and manage each initialization separately. See `ros2 launch andino_bringup andino_robot.launch.py -s ` for checking out the arguments.
-
-- include_rplidar: `true` as default.
-- include_camera: `true` as default.
-
-After the robot is launched, use `ROS 2 CLI` for inspecting environment.
-For example, by doing `ros2 topic list` the available topics can be displayed:
-
-    /camera_info
-    /cmd_vel
-    /image_raw
-    /odom
-    /robot_description
-    /scan
-    /tf
-    /tf_static
-
-   _Note: Showing just some of them_
-
-### Teleoperation
-
-Launch files for using the keyboard or a joystick for teleoperating the robot are provided.
-
-#### Keyboard
-
+2. Проверьте доступные топики:
 ```
+ros2 topic list
+```
+Ожидаемые топики:
+- `/odom`: данные одометрии
+- `/scan`: данные лидара
+
+### Шаг 2: Запуск SLAM
+1. Запустите SLAM:
+```
+ros2 launch andino_slam slam.launch.py
+```
+2. Запустите rviz:
+```
+rviz2
+```
+3. Управляйте роботом для построения карты:
+ - В новом терминале запустите телеуправление:
+ ```
 ros2 launch andino_bringup teleop_keyboard.launch.py
-```
-This is similarly to just executing `ros2 run teleop_twist_keyboard teleop_twist_keyboard`.
+ ```
+ - Используйте клавиши (исполнительные клавиши будут отображены на мониторе) для медленного перемещения робота по помещению
 
-#### Joystick
+ ### Шаг 3: Сохранение карты
+ 1. Сохраните созданную карту:
+ ```
+ ros2 run nav2_map_server map_saver_cli -f ~/andino_map
+ ```
+ - Карта сохранится в файлах `andino_map.pgm` и `andino_map.yaml` в домашней директории
+ 2. Остановите SLAM:
+ - Нажмите Ctrl+C в терминале с SLAM
 
-Using a joystick for teleoperating is notably better.
-You need the joystick configured as explained [here](andino_hardware/README.md#Using-joystick-for-teleoperation).
-```
-ros2 launch andino_bringup teleop_joystick.launch.py
-```
+ ### Шаг 4: Повторное использование карты
+ 1. Запустите навигацию с сохраненной картой:
+ ```
+ ros2 launch andino_navigation bringup.launch.py map:=~/andino_map.yaml
+ ```
+ 2. Установите начальную позицию в RViz:
+ - Используйте инструмент `2D Pose Estimate` в RViz
+ - Щелкните на карте, чтобы указать приблизительное положение робота
 
-### RViz
-
-Use:
-
-```
-ros2 launch andino_bringup rviz.launch.py
-```
-
-For starting `rviz2` visualization with a provided configuration.
-
-## :compass: Navigation
-
-The [`andino_navigation`](./andino_navigation/README.md) package provides a navigation stack based on the great [Nav2](https://github.com/ros-planning/navigation2) package.
-
-https://github.com/Ekumen-OS/andino/assets/53065142/29951e74-e604-4a6e-80fc-421c0c6d8fee
-
-Follow the [`andino_navigation`'s README](./andino_navigation/README.md) instructions for bringing up the Navigation stack in the real robot or in the simulation.
-
-## :computer: Simulation
-
-<img src="https://github.com/Ekumen-OS/andino_gz/blob/humble/docs/media/andino_gz.png" width=600/>
-
-Within the Andino ecosystem simulations on several platforms are provided:
- - [`andino_gz_classic`](./andino_gz_classic/README.MD) - (To be deprecated as of Jazzy)
- - [`andino_gz`](https://github.com/Ekumen-OS/andino_gz) - **Recommended**
- - [`andino_webots`](https://github.com/Ekumen-OS/andino_webots)
- - [`andino_o3de`](https://github.com/Ekumen-OS/andino_o3de)
- - [`andino_isaac`](https://github.com/Ekumen-OS/andino_isaac)
-
-
-
-
-
-## :selfie: Media
-
-### RVIZ Visualization
-
-https://github.com/Ekumen-OS/andino/assets/53065142/c9878894-1785-4b81-b1ce-80e07a27effd
-
-### Slam
-
-Using the robot for mapping.
-
-https://github.com/Ekumen-OS/andino/assets/53065142/283f4afd-0f9a-4d37-b71f-c9d7b2f3e453
-
-https://github.com/Ekumen-OS/andino/assets/53065142/d73f6053-b422-4334-8f62-029a38799e66
-
-
-See [`andino_slam`](./andino_slam/) for more information.
+ ## Устранение неполадок
+ 1. Лидар не работает:
+ - Проверьте порт: `ls -l /dev/ttyUSB_LIDAR`
+ - Убедитесь, что RPLIDAR подключен и питается
+ 2. Двигатели не реагируют:
+ - Проверьте прошивку Arduino: отправьте `o 100 100` через Монитор порта
+ - Убедитесь, что порт `/dev/ttyUSB_ARDUINO` доступен
+ 3. Карта не строится:
+ - Проверьте топик /scan: `ros2 topic echo /scan`
+ - Убедитесь, что робот движется и лидар собирает данные
+ 4. RViz не открывается:
+ Убедитесь, что RViz установлен:
+ ```
+ sudo apt install -y ros-humble-rviz2
+ ```
