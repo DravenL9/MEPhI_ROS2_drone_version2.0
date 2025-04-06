@@ -1,8 +1,6 @@
 # andino_hardware
 
 Здесь содержится инструкция по изготовлению деталей робота, инструкция по его сборке и список используемых компонентов.
-- `Изготовление деталей.pdf`: инструкция по 3D печати и лазерной резке
-- `Инструкция по сборке корпуса.pdf`: инструкция по сборке корпуса
 
 ## Перечень компонентов
 
@@ -29,68 +27,15 @@
 
 
 
-## Assembly Process
+## Изготовление деталей
+[`Изготовление деталей.pdf`](/andino_hardware/Изготовление%20деталей.pdf): инструкция по 3D печати и лазерной резке
 
-  1. Screw the Motor Driver and the idler wheel to the lower chassis.
+Файлы деталей содержатся в [`3D`](/3D/)
 
-  <img src="docs/caster_wheel_h_bridge.jpg">
+## Сборка робота
+[`Инструкция по сборке корпуса.pdf`](/andino_hardware/Инструкция%20по%20сборке%20корпуса.pdf): инструкция по сборке корпуса
 
-  Here you have a front image of how the caster wheel are mounted to the chassis:
 
-  <img src="docs/caster_wheel.jpg">
-
-  2. Screw the 3D printed parts for the Raspi Camera Module:
-
-  <img src="docs/printed_camera_parts.jpg">
-
-  3. Add the Arduino Nano to the back of the lower part of the chassis. It should look like this:
-
-  <img src="docs/lower_back.jpg">
-
-  4. Screw the Raspberry Pi and the DC-DC converter to the front of the lower part of the chassis:
-
-  <img src="docs/lower_front.jpg">
-
-  5. Fix the powerbank to the back of the upper part of the chassis:
-
-  <img src="docs/powerbank.jpg">
-
-  6. Add the RPLidar to the front of the upper part of the chassis:
-
-  <img src="docs/lidar.jpg">
-
-  7. Add the IMU (WIP)
-
-  <!-- TODO Add photo of the IMU physical implementation-->
-
-  8. Perform all the wiring following the [Connections Diagram](#connection-diagram) of both the upper and lower chassis. Note that some of the connections may need to be done by soldering the cables.
-
-  9.  Join both chassis together, and complete the remaining wiring to have your robot ready:
-
-  <img src="docs/andino_complete.jpg">
-
-<a name="connection-diagram"></a>
-## Connection Diagram
-
-### Motor-Arduino
-
-<img src="docs/andino_diagram_arduino.jpg" />
-
-Some frequent errors:
- - If one of the motors rotates in the opposite direction (think about the orientation of the motors in the chassis) probably the output(+ and -) of the L298N's output should be toggled.
- - When moving forward the encoder values should increase while moving backwards they should decrease. If it is happening the other way around probably the A and B encoder signals should be toggled.
-
-### Raspberry-Power
-
-<img src="docs/andino_diagram_raspberry.jpg" />
-
-*NOTE: depending on the power bank maximum output current, the motors may need to be powered with a voltage value lower than 9V. While a higher voltage value (up to 9V) leads to smoother operation (better motor speed control), it also increases their open-loop speed, which is noticeable particularly during motion start and varies according to the power bank quality (output current capabilities). Therefore, adjusting the output voltage to lower values (around 7V) may be required so as to make the motors work as expected.
-
-**NOTE: Ensure the ribbon cable is properly connected with the blue or silver side facing the USB ports.
-
-## Microcontroller Configuration
-
-For uploading the microcontroller firmware please refer to [`andino_firmware`](../andino_firmware/README.md) package.
 
 ## Single Board Computer (SBC)
 
