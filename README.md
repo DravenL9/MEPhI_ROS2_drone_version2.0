@@ -20,6 +20,15 @@
 - [`MEPhI_ROS2_drone_slam`](./andino_slam/): обеспечивает работу `SLAM` (одновременная локализация и построение карты)
 - [`MEPhI_ROS2_drone_navigation`](./andino_navigation/): стек навигации, основанный на `nav2`
 
+## Видеоматериалы работы
+
+### отображение LaserScan в rviz2
+
+<video width="640" height="360" controls>
+  <source src="/docs/LaserScan.mp4" type="video/mp4">
+  Ваш браузер не поддерживает видео.
+</video>
+
 ## Сборка MEPhI_ROS2_drone
 
 - Сборка конструкции робота подробно описана в [`andino_hardware`](./andino_hardware/)
