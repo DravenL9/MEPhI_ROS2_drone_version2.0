@@ -24,10 +24,10 @@
 
 ### отображение LaserScan в rviz2
 
-<video width="640" height="360" controls>
-  <source src="/docs/LaserScan.mp4" type="video/mp4">
-  Ваш браузер не поддерживает видео.
-</video>
+<iframe width="640" height="360" 
+  src="https://youtu.be/dyld3nLJG04"
+  frameborder="0" allowfullscreen>
+</iframe>
 
 ## Сборка MEPhI_ROS2_drone
 
