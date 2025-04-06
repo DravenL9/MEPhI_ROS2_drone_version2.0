@@ -17,12 +17,72 @@ MEPhI_ROS2_drone - это двухколесный робот с открыты�
 - [`MEPhI_ROS2_drone_description`](./andino_description): содержит описание робота в формате `.URDF`
 - [`MEPhI_ROS2_drone_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
 - [`MEPhI_ROS2_drone_control`](./andino_control/): запускает [controller_manager](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) вместе с [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) and the [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html)
-- [`MEPhI_ROS2_drone_slam`](./andino_slam/): обеспечивает работу SLAM (одновременная локализация и построение карты)
+- [`MEPhI_ROS2_drone_slam`](./andino_slam/): обеспечивает работу `SLAM` (одновременная локализация и построение карты)
 - [`MEPhI_ROS2_drone_navigation`](./andino_navigation/): стек навигации, основанный на `nav2`
 
-## Установка
+## Сборка MEPhI_ROS2_drone
 
-Remember to first go over the assembly instructions at [`andino_hardware`](./andino_hardware/)!
+- Сборка конструкции робота подробно описана в [`andino_hardware`](./andino_hardware/)
+- Сборка электрической схемы подробно описана в [`schematic`](./schematic/)
+
+## Установка Ubuntu 22.04 на Raspberry Pi
+
+Для работы MEPhI_ROS2_drone на Raspberry Pi 4B необходимо установить и настроить Ubuntu 22.04 LTS.
+
+### Шаг 1: Загрузка и запись образа
+1. Перейдите на сайт [https://ubuntu.com/download/raspberry-pi](https://ubuntu.com/download/raspberry-pi)
+2. Выберете руководство по установке Ubuntu Desktop
+
+### Шаг 2: Начальная настройка
+1. Вставьте карту MicroSD в Raspberry Pi и подключите кабель питания USB-C 
+2. Подключите монитор и клавиатуру
+3. Проследуйте указаниям на экране
+4. Запустите терминал и введите
+```
+sudo apt update && sudo apt upgrade -y
+```
+5. Проверьте версию Ubuntu (ожидаемый вывод: `Ubuntu 22.04 LTS`):
+```
+lsb_release -a
+```
+6. Проверьте подключение к интернету:
+```
+ping google.com
+```
+## Настройка USB портов
+
+Назначьте фиксированные имена USB-портам для стабильного распознавания устройств в ROS2.
+
+1. Подключите Arduino UNO R3 и RPLIDAR A1 к Raspberry Pi
+2. Просмотрите подключенные USB-устройства:
+```
+ls -l /dev/ttyUSB*
+```
+Пример вывода:
+```
+crw-rw---- 1 root dialout 188, 0 Apr 06 03:10 /dev/ttyUSB0
+crw-rw---- 1 root dialout 188, 1 Apr 06 03:10 /dev/ttyUSB1
+```
+3. Определите устройства:
+ - Отключите RPLIDAR и снова выполните ls -l /dev/ttyUSB*. Исчезнувшее устройство — RPLIDAR
+ - Повторите для Arduino
+ - Пример: `/dev/ttyUSB0 = Arduino`, `/dev/ttyUSB1 = RPLIDAR`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Platforms
 
