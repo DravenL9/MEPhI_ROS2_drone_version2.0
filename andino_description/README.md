@@ -1,26 +1,23 @@
-# andino_description
+# MEPhI_ROS2_drone_description
 
-## Description
-This package holds the urdf description of the robot.
+## Описание
+В папке `urdf` находятся файлы `.urdf`, содержащие описание робота, разделенные на разные модули и объединенные в файл `andino.urdf.xacro`.
 
-<img src="docs/robot_rviz.png">
+## Конфигурация
 
-In the `urdf` folder you have the URDF files that contain the description of the robot, divided in different modules and merged into `andino.urdf.xacro` file.
+Если вы хотите изменить физические свойства некоторых компонентов робота, вы можете сделать это, изменив файлы `.yaml`, хранящиеся по умолчанию в папке `config/andino`.
 
-## Configuration
-
-In case you want to change the physical properties of some of the components of the robot, you can do it modifying the default YAML files inside the `config/andino` folder.
-
-You can even add your own configuration files in another directory in the `config` folder, and pass this directory to the main file using the `yaml_config_dir` xacro argument on the launch files.
+Вы даже можете добавить свои собственные конфигурационные файлы в другой каталог в папке `config` и передать этот каталог в основной файл, используя аргумент `yaml_config_dir` xacro в файлах запуска.
 
 ## Launch Files
 
-For launching robot state publisher for filling up static tf information and serving the description of the robot. Typically used during robot bringup.
+Обычно используется при запуске робота для активации `robot state publisher` и заполнения статической информации `tf`, а также для предоставления описания робота:
+
 ```
 ros2 launch andino_description andino_description.launch.py
 ```
 
-For launching the robot state publisher and providing some visualization with rviz to analyze the robot description.
+Для запуска `robot state publisher` и предоставления визуализации с помощью `rviz` для анализа описания робота:
 ```
 ros2 launch andino_description view_andino.launch.py
 ```
