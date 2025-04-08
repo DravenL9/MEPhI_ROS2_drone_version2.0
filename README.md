@@ -18,7 +18,7 @@
 - [`MEPhI_ROS2_drone_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
 - [`MEPhI_ROS2_drone_control`](./andino_control/): запускает [controller_manager](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) вместе с [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) и [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html)
 - [`MEPhI_ROS2_drone_slam`](./andino_slam/): обеспечивает работу `SLAM` (одновременная локализация и построение карты)
-- [`MEPhI_ROS2_drone_navigation`](./andino_navigation/): стек навигации, основанный на `nav2`
+- [`MEPhI_ROS2_drone_navigation`](./andino_navigation/): стек навигации, основанный на `Nav2`
 
 ## Видеоматериалы работы
 

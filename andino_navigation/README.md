@@ -1,32 +1,28 @@
-# Andino Navigation
+# MEPhI_ROS2_drone Navigation
 
-We rely on [Nav2](https://github.com/ros-planning/navigation2) stack in order to navigate Andino.
+Мы полагаемся на стек [Nav2](https://github.com/ros-planning/navigation2) для навигации MEPhI_ROS2_drone.
 
-# Usage
+# Использование
 
-## Prerequisites
-  1. Run the mobility stack in a real Andino robot or a simulated one:
+## Предварительные требования
+  1. Запустите основной стек на MEPhI_ROS2_drone:
 
-_Real robot_
 ```
 ros2 launch andino_bringup andino_robot.launch.py
 ```
 
-_Example with Gazebo Classic_
-```
-ros2 launch andino_gz_classic andino_one_robot.launch.py
-```
-
-  1. Provide a recorded map. Refer to [andino_slam](../andino_slam/README.md) to learn how to record a map with Andino.
+  2. Запишите карту с помощью [`MEPhI_ROS2_drone_slam`](../andino_slam/README.md).
 
 ## Run Nav Stack
 
-```sh
+Запустите стек навигации командой:
+
+```
 ros2 launch andino_navigation bringup.launch.py map:=<path-to-my-map-yaml-file>
 ```
 
-By default, [config file](params/nav2_params.yaml) is used. For using a custom param file use:
+По умолчанию используется [config file](params/nav2_params.yaml). Для использования пользовательского файла параметров выполните:
 
-```sh
+```
 ros2 launch andino_navigation bringup.launch.py map:=<path-to-my-map-yaml-file> params_file:=<path-to-my-param-file>
 ```
