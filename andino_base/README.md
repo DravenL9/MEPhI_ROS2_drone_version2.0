@@ -1,59 +1,58 @@
-# andino_base
+# MEPhI_ROS2_drone_base
 
-## Description
+## Описание
 
-The hardware-software-ros interaction in the `andino` project is developed using [ROS 2 Control](https://control.ros.org/master/index.html).
+Взаимодействие аппаратного обеспечения, программного обеспечения и ROS в проекте `MEPhI_ROS2_drone` разработано с использованием [ROS 2 Control](https://control.ros.org/master/index.html).
 
-This package:
- - Implements `andino`'s [hardware interface](https://control.ros.org/master/doc/ros2_control/hardware_interface/doc/writing_new_hardware_interface.html).
- - Provides a communication with microcontroller:
-   - `andino_base::MotorDriver` class is in charge of the Serial communication for commanding the motors.
-     - An application is provided for evaluating the communication: Check `applications/motor_driver_demo.cpp`. To use this application simply execute `motor_driver_demo --help` to see the options.
-   - This communication module is used by the hardware interface implementation.
+Этот пакет:
+ - Реализует hardware interface для MEPhI_ROS2_drone
+ - Обеспечивает связь с микроконтроллером:
+   - Класс `andino_base::MotorDriver` отвечает за последовательную связь для управления моторами
+     - Предоставляется приложение для оценки связи: ознакомьтесь с `applications/motor_driver_demo.cpp`. Чтобы использовать это приложение, просто выполните `motor_driver_demo --help` для просмотра опций
+   - Этот модуль связи используется в реализации аппаратного интерфейса
 
 ## Hardware Interface
 
-In `ros2_control` hardware system components are libraries, dynamically loaded by the controller manager using the pluginlib interface.
+В `ros2_control` компоненты аппаратной системы представляют собой библиотеки, динамически загружаемые менеджером контроллера с использованием интерфейса `pluginlib`.
 
-For extra information about the hardware components see [Hardware Components](https://control.ros.org/master/doc/getting_started/getting_started.html#overview-hardware-components).
+Для получения дополнительной информации о компонентах оборудования см. [Hardware Components](https://control.ros.org/master/doc/getting_started/getting_started.html#overview-hardware-components).
 
-The hardware interface accepts some parameters that are passed via the urdf description within the `ros2_control` tag (Check [`andino_description`](../andino_description/urdf/include/andino_control.urdf.xacro))
+Аппаратный интерфейс принимает некоторые параметры, которые передаются через описание urdf в теге `ros2_control` (см. [andino_description](../andino_description/urdf/include/andino_control.urdf.xacro)).
 
-| Params               | Description |
-| :---                 |    :----:   |
-| left_wheel_name      | Name of the left wheel joint. |
-| right_wheel_name     | Name of the right wheel joint. |
-| serial_device        | Path to the serial device. |
-| baud_rate            | Baud rate of the serial communication. |
-| timeout              | Timeout for the communication. |
-| enc_ticks_per_rev    | Encoder ticks per revolution of the wheel. |
+| Параметры            | Описание                                     |
+|:---                  |                     :----:                   |
+| left_wheel_name      | Название соединения левого колеса            |
+| right_wheel_name     | Название соединения правого колеса           |
+| serial_device        | Путь к последовательному устройству          |
+| baud_rate            | Скорость передачи данных в бодах             |
+| timeout              | Тайм-аут для связи                           |
+| enc_ticks_per_rev    | Количество тиков энкодера за один оборот колеса |
 
 ### State interfaces
 
-This hardware interface implements the following state interfaces per joint (for left and right joint):
- - *Position*: The position is obtained via encoder information from the microcontroller.
- - *Velocity*: Velocity is calculated via encoder information from the microcontroller.
+Этот аппаратный интерфейс реализует следующие интерфейсы состояния для каждого соединения (для левого и правого соединения):
+ - `Position`: позиция определяется на основе информации от энкодера, полученной от микроконтроллера
+ - `Velocity`: скорость рассчитывается на основе информации от энкодера, полученной от микроконтроллера
 
 ### Command interfaces
 
-This hardware interface uses the following command interfaces per joint (for left and right joint):
- - *Velocity*: The velocity received (rad/s) is traduced to microcontroller's velocity nomenclature for the motors.
+Этот аппаратный интерфейс использует следующие командные интерфейсы для каждого соединения (для левого и правого соединения):
+ - `Velocity`: полученная скорость (рад/с) преобразуется в номенклатуру скорости микроконтроллера для моторов
 
+## Приложение Motor Driver
 
-## Motor Driver Application
-
-An application for testing the connection with the microcontroller is provided.
-After installing this package the application called `motor_driver_demo` can be used.
+Для тестирования соединения с микроконтроллером предоставляется приложение.
+После установки этого пакета можно использовать приложение под названием `motor_driver_demo`:
 ```
 motor_driver_demo --help
 ```
 
-This application allows verifying the communication with the microcontroller for controlling the motors. Commands for reading the encoders or individually setting a velocity for the motors is some of the possibilities.
+Это приложение позволяет проверить связь с микроконтроллером для управления моторами. Команды для чтения энкодеров или индивидуальной установки скорости для моторов — это некоторые из возможностей.
 
-## Extra Notes
+## Примечания
 
- - Serial communication: In case the serial port is denied to be open, probably the user should be added to the `plugdev` and `dialout` groups:
-    ```
-    sudo usermod -a -G dialout $USER
-    sudo usermod -a -G plugdev $USER
-    ```
+`Последовательная связь`: если доступ к последовательному порту запрещен, вероятно, пользователя нужно добавить в группы `plugdev` и `dialout`:
+ ```
+sudo usermod -a -G dialout $USER
+sudo usermod -a -G plugdev $USER
+```
