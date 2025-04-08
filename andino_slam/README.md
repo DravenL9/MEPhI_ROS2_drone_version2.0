@@ -1,38 +1,36 @@
-# andino_slam
+# MEPhI_ROS2_drone_slam
 
-## Description
+## Описание
 
-For achieving SLAM we rely on the great [`slam_toolbox`](https://github.com/SteveMacenski/slam_toolbox/tree/ros2) package.
+Для запуска SLAM мы полагаемся на замечательный пакет [`slam_toolbox`](https://github.com/SteveMacenski/slam_toolbox/tree/ros2).
 
-## Usage
+## Использование
 
-After the robot bring up, simply execute the provided launch file.
-
+После запуска робота просто запустите файл запуска SLAM:
 ```
 ros2 launch andino_slam slam_toolbox_online_async.launch.py
 ```
 
-Several configuration can be forwarded to the `slam_toolbox_node`. By default, the configuration parameters are obtained from [config/slam_toolbox_only_async.yaml](config/slam_toolbox_online_async.yaml). In case a custom file is wanted to be passed, simply use the launch file argument for indicating the path to a new file.
+Несколько конфигураций могут быть перенаправлены в `slam_toolbox_node`. По умолчанию параметры конфигурации получены из [config/slam_toolbox_only_async.yaml](config/slam_toolbox_online_async.yaml). В случае, если требуется передать пользовательский файл, просто используйте аргумент launch file для указания пути к новому файлу:
 
 ```
 ros2 launch andino_slam slam_toolbox_online_async.launch.py slams_param_file:=<my_path>
 ```
 
-For saving the map you can use `map_saver_cli` node provided by Nav2.
-```sh
+Для сохранения карты вы можете использовать узел `map_saver_cli`, предоставляемый Nav2:
+
+```
 ros2 run nav2_map_server map_saver_cli -f <my-map-name>
 ```
 
-You can modify the threshold for free space (0.25) and occupied space (0.65) by using
-`--free` and `--occ` arguments.
+Вы можете изменить пороговое значение для свободного пространства (0.25) и занятого пространства (0.65), используя аргументы
+`--free` и `--occ`:
 
-```sh
+```
 ros2 run nav2_map_server map_saver_cli --free 0.15 -f <my-map-name>
 ```
-More information at:
- - https://navigation.ros.org/configuration/packages/configuring-map-server.html
+
+Больше информации тут:
  - https://github.com/ros-planning/navigation2/tree/main/nav2_map_server
 
-
-Once you have the map saved, you can navigate on it!
-Go to [`andino_navigation`](../andino_navigation/README.md) to learn how.
+Сохранив карту, вы сможете перемещаться по ней! Перейдите на страницу [`MEPhI_ROS2_drone_navigation`](../andino_navigation/README.md), чтобы узнать, как это сделать.
