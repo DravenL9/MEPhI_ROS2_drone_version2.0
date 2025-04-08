@@ -13,7 +13,7 @@
 - [`schematic`](./schematic): электрическая схема робота и инструкция по ее сборке
 - [`MEPhI_ROS2_drone_hardware`](./andino_hardware): содержит инструкцию по сборке `MEPhI_ROS2_drone` и перечень используемого оборудования
 - [`MEPhI_ROS2_drone_firmware`](./andino_firmware): содержит код отладочной платы Arduino UNO R3 для сопряжения с raspberry pi 4 и инструкцию по его заливке на плату
-- [`MEPhI_ROS2_drone_bringup`](./andino_bringup): содержит файлы запуска для старта всех связанных драйверов и узлов, которые будут использоваться в роботе
+- [`MEPhI_ROS2_drone_bringup`](./andino_bringup): содержит файлы запуска для старта всех связанных драйверов и нод, которые будут использоваться в роботе
 - [`MEPhI_ROS2_drone_description`](./andino_description): содержит описание робота в формате `.urdf`
 - [`MEPhI_ROS2_drone_base`](./andino_base): это программно-аппаратный модуль проекта, который обеспечивает связь с микроконтроллером для управления моторами и предоставляет утилиты для отладки
 - [`MEPhI_ROS2_drone_control`](./andino_control/): запускает [controller_manager](https://control.ros.org/humble/doc/ros2_control/controller_manager/doc/userdoc.html) вместе с [ros2 controllers](https://control.ros.org/master/doc/ros2_controllers/doc/controllers_index.html): [diff_drive_controller](https://control.ros.org/master/doc/ros2_controllers/diff_drive_controller/doc/userdoc.html) и [joint_state_broadcaster](https://control.ros.org/master/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html)
@@ -198,12 +198,12 @@ source ~/MEPhI_ROS2_drone_ws/install/setup.bash
 ## Настройка и запуск SLAM
 SLAM позволяет роботу строить карту неизвестной среды и одновременно определять свое местоположение. В этом разделе используется пакет MEPhI_ROS2_drone_slam с алгоритмом Cartographer.
 
-### Шаг 1: Запуск базовых узлов
-1. Запустите базовые узлы робота:
+### Шаг 1: Запуск базовых нод
+1. Запустите базовые ноды робота:
 ```
 ros2 launch andino_bringup andino_robot.launch.py
 ```
-Это активирует узлы для работы с двигателями и лидаром.
+Это активирует ноды для работы с двигателями и лидаром.
 
 2. Проверьте доступные топики:
 ```

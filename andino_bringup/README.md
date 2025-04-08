@@ -1,26 +1,24 @@
-# andino_bringup
+# MEPhI_ROS2_drone_bringup
 
-## Description
-This package contains mainly launch files in order to launch all related driver and nodes to be used in the real robot. Some configuration files are also added to set up the nodes launched in the 'config' folder.
+## Описание
+Здесь содержатся основные файлы запуска для старта всех соответствующих драйверов и нод, которые будут использоваться в роботе. Также добавлены некоторые конфигурационные файлы для настройки нод, хранящиеся в папке `config`.
 
 ## Launch Files
 
-### Main file
+### Главный файл запуска всего проекта
 
-The main launch file is the `andino_robot.launch.py` file. This file executes all necessary nodes for Andino Robot to work.
+Основным файлом запуска является файл `andino_robot.launch.py`. Этот файл запускает все необходимые ноды для работы MEPhI_ROS2_drone.
 
-It includes:
+Он включает:
 
-- `andino_description.launch.py`: file to load the 3D model of the robot from the URDF.
-- `andino_control.launch.py`: file for the `ros2_control` nodes and drivers.
-- `camera.launch.py`: file to execute the camera drivers, using `v4l2_camera` package. If not necessary, it can be disabled using the `include_camera` parameter.
-- `rplidar.launch.py`: file to execute the drivers of the RP 2D LiDAR attached to the robot. If not necessary, it can be disabled using the `include_rplidar` parameter.
+- `andino_description.launch.py`: файл для загрузки 3D модели робота из `urdf` описания
+- `andino_control.launch.py`: файл для запуска нод и драйверов пакета `ros2_control`
+- `rplidar.launch.py`: файл для запуска драйверов `RPLIDAR A1`, подключенного к роботу
 
-### Other launch files included
+### Другие launch files
 
-These launch files are included just in case you want to command the robot in different ways, or visualize the information:
+Эти файлы запуска включены на тот случай, если вы захотите управлять роботом другими способами или визуализировать информацию:
 
-- `rosbag_record.launch.py`: executes the `ros2 bag record` command to store a '.bag' file with the specified topics. If no topics are specified, it will record all of them.
-- `rviz.launch.py`: executes the RViz visualization tool with the 'andino.rviz' configuration by default, to be able to visualize the 3D model of the robot and information from the topics.
-- `teleop_joystick.launch.py`: this file allows you to command the robot using a controller with a joystick, using the `teleop_twist_joy` and the `joy_linux` packages.
-- `teleop_keyboard.launch.py`: this file allows you to command the robot using a keyboard, using the `teleop_twist_keyboard` package.
+- `rosbag_record.launch.py`: выполняет команду `ros2 bag record` для сохранения файла `.bag` с указанными топиками. Если конкретные топики не указаны, программа запишет их все
+- `rviz.launch.py`: запускает инструмент визуализации `RViz` с конфигурацией `andino.rviz` по умолчанию, чтобы иметь возможность визуализировать 3D-модель робота и информацию из топиков
+- `teleop_keyboard.launch.py`: позволяет вам управлять роботом с помощью клавиатуры, используя пакет `teleop_twist_keyboard`
