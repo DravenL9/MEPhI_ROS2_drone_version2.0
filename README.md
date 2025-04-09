@@ -5,7 +5,7 @@
 *Данный проект является форком проекта [Andino](https://github.com/Ekumen-OS/andino), ПО, конструкция и электрическая схема которого были доработаны под наши требования.
 
 <p align="center">
-  <img src="docs/MEPhI_ROS2_drone.jpg" width=700 />
+  <img src="MEPhI_ROS2_drone.jpg" width=700 />
 </p>
 
 ## Описание проекта

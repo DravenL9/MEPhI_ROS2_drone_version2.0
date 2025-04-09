@@ -1,28 +1,26 @@
-# Andino Apps
+# MEPhI_ROS2_drone Apps
 
-This package contains integration applications with the Andino robot.
+Этот пакет содержит приложения для работы с MEPhI_ROS2_drone.
 
-# Applications
+# Приложения
 
 ## Gazebo classic simulation + Nav2
 
-A launch file for running the andino_gz_classic simulation and the Nav 2 stack is provided.
-It uses the [turtlebot3_world](https://github.com/ROBOTIS-GIT/turtlebot3_simulations/tree/master) world (_Apache 2 license_) by default.
+Файл для запуска и моделирования MEPhI_ROS2_drone_gz_classic и стека Nav2. По умолчанию используется мир [`turtlebot3_world`](https://github.com/ROBOTIS-GIT/turtlebot3_simulations/tree/master).
 
 ```
  ros2 launch andino_apps andino_simulation_navigation.launch.py
 ```
 
-To visualize and interact with the Andino robot in RViz:
+Для визуализации робота MEPhI_ROS2_drone и взаимодействия с ним в `RViz`:
 
-- Click in 2D pose estimate button and select the initial pose of the robot
-- Click in Nav2 Goal button and select the final point.
-- The robot will start to move to the selected goal.
+- Нажмите кнопку `2D Pose Estimate` и выберите начальную позу робота
+- Нажмите кнопку `2D Goal Pose` и выберите конечную точку
+
+Робот начнет двигаться к выбранной цели.
 
 ![Rviz_example_Nav2](docs/Rviz_example_Nav2.gif)
 
-For further information and examples you can check the [Nav2 tutorials](https://navigation.ros.org/tutorials/index.html).
+Для получения дополнительной информации и примеров вы можете ознакомиться с [Nav2 tutorials](https://docs.nav2.org/tutorials/index.html).
 
-This package has been tested with the Andino robot with `diff drive plugin` in Gazebo-classic.
-
-By changing the world file, make sure to also change map file. Further navigation [parameters](params/nav2_params.yaml) tunning is recommended.
+Изменяя файл world, не забудьте также изменить файл map.
