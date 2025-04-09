@@ -1,91 +1,83 @@
 
-# Gazebo Classic simulation for the Andino robot
+# Симуляция робота MEPhI_ROS2_drone в Gazebo
 
-<img src="docs/andino_gz_classic.png">
+## Сборка
 
-## Build
-
-Install package dependencies:
+Установите зависимости пакетов:
 
 ```
 rosdep install --from-paths src -i -y
 ```
 
-Build the package:
+Создайте пакет:
 
 ```
 colcon build
 ```
 
-Note: `--symlink-install` can be added if needed.
+Примечание: `--symlink-install` при необходимости может быть добавлен.
 
-Finally, source the install folder
+Наконец, создайте исходную папку установки:
+
 ```
 . install/setup.bash
 ```
 
-Note: `gazebo` might be needed to be sourced as well
+Примечание: `gazebo` возможно, потребуется найти источник:
 
 ```
 . /usr/share/gazebo/setup.bash
 ```
 
-# Usage 
+# Использование 
 
-This package has the next option to be executed.
-
-## Andino simulation with Gazebo diff drive plugin
+## MEPhI_ROS2_drone симуляция с плагином Gazebo diff drive
 
 
 ```
 ros2 launch andino_gz_classic andino_one_robot.launch.py initial_pose_x:=3.0
 ```
 
-This launch file supports the following launch arguments:
+Этот файл запуска поддерживает следующие параметры запуска:
 
-- `use_sim_time` . This parameter indicate to the rviz that it should work with simulation time. (default: 'true')
-- `rviz` . This parameter let to decide if you want to run rviz with this launch. False can be useful if you want to view the rviz in another computer. (default: 'true')
-- `world` . SDF file of the world where andino will run. Note that the world should be available in gazebo paths.(default: 'empty_world.world')
+- `use_sim_time`: этот параметр указывает rviz, что он должен работать со временем моделирования (по умолчанию: `true`)
+- `rviz`: этот параметр позволяет определить, хотите ли вы запускать rviz при этом запуске. Значение `False` может быть полезно, если вы хотите просмотреть rviz на другом компьютере (по умолчанию: `true`)
+- `world`: SDF-файл мира, в котором будет запущен MEPhI_ROS2_drone. Обратите внимание, что мир должен быть доступен в `gazebo paths` (по умолчанию: `empty_world.world`)
 
-Finally, all the parameters of spawn an andino robot to put the robot in specific position are available. for more information of all the parameters of the child launch files you can write:
 
+Наконец, доступны все параметры запуска MEPhI_ROS2_drone для перевода робота в определенное положение. Для получения дополнительной информации обо всех параметрах дочерних файлов запуска вы можете написать:
 ```
 ros2 launch andino_gz_classic andino_one_robot.launch.py -s
 ```
-## Andino simulation with Gazebo ros2 control plugin
+
+## MEPhI_ROS2_drone симуляция с плагином Gazebo ros2 control
 
 ```
 ros2 launch andino_gz_classic andino_one_robot.launch.py use_gazebo_ros_control:=true
 ```
 
-### Considerations
-- note that the twist topic is `diff_controller/cmd_vel_unstamped`.
-- The twist topic should be sent at a frequency of at least $10hz$ because the action has a validity timeout.
-
-## Spawn an Andino robot
+## Создание MEPhI_ROS2_drone robot
 
 ```
 ros2 launch andino_gz_classic spawn_robot.launch.py initial_pose_x:=3.0 entity:=andino robot_description_topic:=/andino/robot_description
 ```
 
-The parameters of this launch let to put the robot in any place of the simulation.
+Параметры этого запуска позволяют поместить робота в любое место симуляции.
 
-- `use_sim_time`: Use simulation (Gazebo) clock if true. (default: 'true')
+- `use_sim_time`: используйте часы моделирования (Gazebo), если значение `true` (по умолчанию: `true`)
 
-- `initial_pose_x`: Initial x pose of andino in the simulation. (default: '0.0')
+- `initial_pose_x`: начальная x-поза MEPhI_ROS2_drone в моделировании (по умолчанию: `0.0`)
 
-- `initial_pose_y`: Initial y pose of andino in the simulation. (default: '0.0')
+- `initial_pose_y`: начальная y-поза MEPhI_ROS2_drone в моделировании (по умолчанию: `0.0`)
 
-- `initial_pose_z`: Initial z pose of andino in the simulation. (default: '0.0')
+- `initial_pose_z`: начальная z-поза MEPhI_ROS2_drone в моделировании (по умолчанию: `0.0`)
 
-- `robot_description_topic`: robot description topic. (default: '/robot_description')
+- `robot_description_topic`: топик с описанием робота (по умолчанию: `/robot_description`)
 
-- `initial_pose_yaw`: Initial yaw pose of andino in the simulation. (default: '0.0')
+- `initial_pose_yaw`: начальная yaw-поза (угол рыскания) MEPhI_ROS2_drone в моделировании (по умолчанию: `0.0`)
 
-- `use_gazebo_ros_control`: True to use the gazebo_ros_control plugin.  (default: 'false')
+- `use_gazebo_ros_control`: значение `True` для использования плагина `gazebo_ros_control` (по умолчанию: `false`)
 
-- `entity`: Name of the robot. (default: 'andino')
+- `entity`: имя робота (по умолчанию: `MEPhI_ROS2_drone`)
 
-- `rsp_frequency`: robot state publisher frequency. (default: '30.0')
-
-Spawn multiple andino robots has some issues, so no namespace is created.
+- `rsp_frequency`: частота публикации состояния робота (по умолчанию: `30.0`)
