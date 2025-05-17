@@ -216,7 +216,7 @@ ros2 topic list
 ### Шаг 2: Запуск SLAM
 1. Запустите SLAM:
 ```
-ros2 launch andino_slam slam.launch.py
+ros2 launch andino_slam slam_toolbox_online_async.launch.py
 ```
 2. Запустите rviz:
 ```
