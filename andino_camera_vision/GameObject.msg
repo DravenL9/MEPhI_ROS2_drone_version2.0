@@ -1,7 +1,8 @@
 # GameObject.msg — описание обнаруженного игрового объекта
 
 uint32 object_id                # ID объекта из find_object_2d
-string quality                  # "good" / "normal" / "bad"
+string state                    # "field" / "basket"
+int32 cost                      # стоимость объекта по таблице
 
 # Координаты центра объекта в пикселях (из камеры)
 float64 pixel_x
