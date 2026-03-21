@@ -4,7 +4,7 @@ game_detect — нода ROS2 для обнаружения и классифи�
 
 Подписывается на топик /objects от find_object_2d,
 вычисляет центр каждого объекта через гомографию,
-классифицирует объект ("good"/"normal"/"bad"),
+проставляет состояние ("field"/"basket") и стоимость,
 публикует результаты в /game_objects.
 
 find_object_2d публикует в /objects сообщение типа std_msgs/Float32MultiArray:
@@ -25,28 +25,29 @@ class GameDetectNode(Node):
         super().__init__('game_detect')
 
         # ====================================================================
-        # ПОЛЬЗОВАТЕЛЬСКАЯ НАСТРОЙКА: классификация объектов
-        # Укажите ID объектов из find_object_2d и их "качество".
-        # ID назначаются find_object_2d при добавлении объектов (1, 2, 3, ...).
+        # ПОЛЬЗОВАТЕЛЬСКАЯ НАСТРОЙКА: ID объектов и стоимость
+        # ID объектов укажите вручную в порядке таблицы.
         # ====================================================================
-        self.declare_parameter('good_objects', [1, 2])       # IDs "хороших" объектов
-        self.declare_parameter('normal_objects', [3, 4])      # IDs "нормальных" объектов
-        self.declare_parameter('bad_objects', [5, 6])         # IDs "плохих" объектов
+        self.object_costs = [
+            # Белый куб с маркером 50*50*50 мм - id 20
+            {"name": "white_cube_id20", "id": 20, "field": 1, "basket": 2},
+            # Белый куб с маркером 50*50*50 мм - id 21
+            {"name": "white_cube_id21", "id": 21, "field": -2, "basket": 4},
+            # Красный куб 50*50*50 мм
+            {"name": "red_cube_50", "id": -1, "field": -4, "basket": 4},
+            # Синий куб 40*40*40 мм
+            {"name": "blue_cube_40", "id": -1, "field": 2, "basket": 4},
+            # Красный цилиндр 40мм (диаметр) * 50мм высота
+            {"name": "red_cylinder_40x50", "id": -1, "field": 3, "basket": 6},
+            # Пингвин голубой
+            {"name": "blue_penguin", "id": -1, "field": -6, "basket": 6},
+            # Осьминог красный
+            {"name": "red_octopus", "id": -1, "field": 5, "basket": 10},
+            # Кролик зелёный
+            {"name": "green_rabbit", "id": -1, "field": 4, "basket": 8},
+        ]
 
-        good_ids = self.get_parameter('good_objects').get_parameter_value().integer_array_value
-        normal_ids = self.get_parameter('normal_objects').get_parameter_value().integer_array_value
-        bad_ids = self.get_parameter('bad_objects').get_parameter_value().integer_array_value
-
-        # Словарь: object_id -> quality
-        self.quality_map = {}
-        for oid in good_ids:
-            self.quality_map[oid] = 'good'
-        for oid in normal_ids:
-            self.quality_map[oid] = 'normal'
-        for oid in bad_ids:
-            self.quality_map[oid] = 'bad'
-
-        self.get_logger().info(f'Quality map: {self.quality_map}')
+        self.get_logger().info(f'Object cost table: {self.object_costs}')
 
         # Подписка на топик /objects от find_object_2d
         self.subscription = self.create_subscription(
@@ -64,6 +65,12 @@ class GameDetectNode(Node):
         )
 
         self.get_logger().info('game_detect запущен. Ожидание данных из /objects...')
+
+    def _get_cost(self, obj_id: int, state: str) -> int:
+        for item in self.object_costs:
+            if item["id"] == obj_id:
+                return int(item[state])
+        return 0
 
     def objects_callback(self, msg: Float32MultiArray):
         """
@@ -104,13 +111,15 @@ class GameDetectNode(Node):
             pixel_x = center_dst[0] / center_dst[2]
             pixel_y = center_dst[1] / center_dst[2]
 
-            # Определяем качество
-            quality = self.quality_map.get(obj_id, 'unknown')
+            # Состояние и стоимость (по умолчанию: на поле)
+            state = 'field'
+            cost = self._get_cost(obj_id, state)
 
             # Формируем сообщение
             go = GameObject()
             go.object_id = obj_id
-            go.quality = quality
+            go.state = state
+            go.cost = int(cost)
             go.pixel_x = float(pixel_x)
             go.pixel_y = float(pixel_y)
             go.world_x = 0.0
@@ -123,7 +132,7 @@ class GameDetectNode(Node):
             game_objects_msg.objects.append(go)
 
             self.get_logger().debug(
-                f'Object id={obj_id} quality={quality} '
+                f'Object id={obj_id} state={state} cost={cost} '
                 f'pixel=({pixel_x:.1f}, {pixel_y:.1f})'
             )
 
