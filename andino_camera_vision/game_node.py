@@ -7,10 +7,12 @@ game_node — нода игры ROS2.
 2. Отслеживает флаг начала игры (game_started) — true когда
    найден центральный ArUco маркер в клетке [3][2].
 3. Определяет на какой стороне (A — верхняя, B — нижняя) находится робот.
-4. Ведёт учёт объектов на поле, их качества и позиций.
-5. Публикует текущее состояние игры в /game_state_info (для отладки).
+4. Ведёт учёт объектов на поле, их состояний, стоимости и позиций.
+5. Определяет состояние объектов ("basket"/"field") по неподвижности в корзине.
+6. Публикует текущее состояние игры в /game_state_info (для отладки).
 """
 
+import math
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -33,8 +35,21 @@ class GameNode(Node):
         # Объекты на поле: {object_id: GameObject}
         self.field_objects = {}
 
-        # Счёт / статистика
-        self.objects_collected = {'good': 0, 'normal': 0, 'bad': 0}
+        # Движение объектов: {object_id: {last_world: (x, y), last_moved: Time}}
+        self.object_motion = {}
+
+        # Настройки определения корзины
+        self.stationary_time_s = 3.0
+        self.stationary_eps_mm = 5.0
+
+        # Корзины по сторонам (row, col)
+        self.basket_cells = {
+            'A': [(0, 0), (1, 3)],  # A1, A2
+            'B': [(6, 0), (5, 3)],  # B1, B2
+        }
+
+        # Счёт / статистика (заготовка)
+        self.objects_collected = {'field': 0, 'basket': 0}
 
         # ====================================================================
         # Подписки
@@ -99,16 +114,71 @@ class GameNode(Node):
         if not self.game_started:
             return
 
+        now = self.get_clock().now()
+        current_ids = set()
         self.field_objects.clear()
+
         for go in msg.objects:
+            current_ids.add(go.object_id)
+
+            motion = self._update_motion(go, now)
+            stationary_time = 0.0
+            if motion is not None:
+                stationary_time = (now - motion['last_moved']).nanoseconds / 1e9
+
+            captured = False  # будет реализовано позже
+            in_basket_cell = self._is_in_basket_cell(go.cell_row, go.cell_col)
+
+            if (not captured) and go.localized and in_basket_cell and stationary_time >= self.stationary_time_s:
+                state = 'basket'
+            else:
+                state = 'field'
+
             self.field_objects[go.object_id] = {
-                'quality': go.quality,
+                'state': state,
+                'cost': getattr(go, 'cost', 0),
+                'captured': captured,
                 'pixel': (go.pixel_x, go.pixel_y),
                 'world': (go.world_x, go.world_y),
                 'cell': (go.cell_row, go.cell_col),
                 'cell_id': go.cell_id,
                 'localized': go.localized,
+                'stationary_time': stationary_time,
             }
+
+        # Удаляем объекты, которые пропали из кадра
+        for oid in list(self.object_motion.keys()):
+            if oid not in current_ids:
+                del self.object_motion[oid]
+
+    def _update_motion(self, go, now):
+        """Обновляет данные о движении объекта и возвращает запись движения."""
+        motion = self.object_motion.get(go.object_id)
+        if motion is None:
+            last_world = (go.world_x, go.world_y) if go.localized else None
+            motion = {'last_world': last_world, 'last_moved': now}
+            self.object_motion[go.object_id] = motion
+            return motion
+
+        if go.localized:
+            if motion['last_world'] is None:
+                motion['last_world'] = (go.world_x, go.world_y)
+                motion['last_moved'] = now
+            else:
+                dx = go.world_x - motion['last_world'][0]
+                dy = go.world_y - motion['last_world'][1]
+                dist = math.hypot(dx, dy)
+                if dist > self.stationary_eps_mm:
+                    motion['last_world'] = (go.world_x, go.world_y)
+                    motion['last_moved'] = now
+
+        return motion
+
+    def _is_in_basket_cell(self, row: int, col: int) -> bool:
+        """Проверяет находится ли клетка в зоне корзины для текущей стороны."""
+        if self.robot_side not in self.basket_cells:
+            return False
+        return (row, col) in self.basket_cells[self.robot_side]
 
     # ========================================================================
     # Публикация состояния (для отладки и мониторинга)
@@ -135,7 +205,10 @@ class GameNode(Node):
                 else:
                     loc_str = 'не локализован'
                 lines.append(
-                    f'  ID={oid}: качество={data["quality"]}, {loc_str}'
+                    f'  ID={oid}: состояние={data["state"]}, '
+                    f'стоимость={data["cost"]}, '
+                    f'captured={data["captured"]}, '
+                    f'неподвижен={data["stationary_time"]:.1f}s, {loc_str}'
                 )
 
             # Объекты по сторонам
@@ -161,11 +234,11 @@ class GameNode(Node):
     # ========================================================================
     # API для расширения: методы которые можно вызвать из внешнего кода
     # ========================================================================
-    def get_objects_by_quality(self, quality: str) -> list:
-        """Возвращает список объектов заданного качества."""
+    def get_objects_by_state(self, state: str) -> list:
+        """Возвращает список объектов заданного состояния."""
         return [
             (oid, data) for oid, data in self.field_objects.items()
-            if data['quality'] == quality
+            if data['state'] == state
         ]
 
     def get_objects_on_side(self, side: str) -> list:
