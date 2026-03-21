@@ -70,6 +70,12 @@ for r in range(ROWS):
 class ArucoMappingNode(Node):
     def __init__(self):
         super().__init__('aruco_mapping')
+
+        self.calib_loaded = False
+        self.map1 = None
+        self.map2 = None
+        self.use_undistort = True
+        self.load_calibration("camera_calib.yml")
        
         self.last_ids_4x4 = set()
        
