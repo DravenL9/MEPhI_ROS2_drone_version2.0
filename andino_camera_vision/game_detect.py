@@ -30,21 +30,21 @@ class GameDetectNode(Node):
         # ====================================================================
         self.object_costs = [
             # Белый куб с маркером 50*50*50 мм - id 20
-            {"name": "white_cube_id20", "id": 20, "field": 1, "basket": 2},
+            {"name": "white_cube_id20", "id": 1, "field": 1, "basket": 2},
             # Белый куб с маркером 50*50*50 мм - id 21
-            {"name": "white_cube_id21", "id": 21, "field": -2, "basket": 4},
+            {"name": "white_cube_id21", "id": 2, "field": -2, "basket": 4},
             # Красный куб 50*50*50 мм
-            {"name": "red_cube_50", "id": -1, "field": -4, "basket": 4},
+            {"name": "red_cube_50", "id": 3, "field": -4, "basket": 4},
             # Синий куб 40*40*40 мм
-            {"name": "blue_cube_40", "id": -1, "field": 2, "basket": 4},
+            {"name": "blue_cube_40", "id": 4, "field": 2, "basket": 4},
             # Красный цилиндр 40мм (диаметр) * 50мм высота
-            {"name": "red_cylinder_40x50", "id": -1, "field": 3, "basket": 6},
+            {"name": "red_cylinder_40x50", "id": 5, "field": 3, "basket": 6},
             # Пингвин голубой
-            {"name": "blue_penguin", "id": -1, "field": -6, "basket": 6},
+            {"name": "blue_penguin", "id": 6, "field": -6, "basket": 6},
             # Осьминог красный
-            {"name": "red_octopus", "id": -1, "field": 5, "basket": 10},
+            {"name": "red_octopus", "id": 7, "field": 5, "basket": 10},
             # Кролик зелёный
-            {"name": "green_rabbit", "id": -1, "field": 4, "basket": 8},
+            {"name": "green_rabbit", "id": 8, "field": 4, "basket": 8},
         ]
 
         self.get_logger().info(f'Object cost table: {self.object_costs}')
