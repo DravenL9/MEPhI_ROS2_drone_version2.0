@@ -7,8 +7,8 @@ import os
 
 def main():
     parser = argparse.ArgumentParser(description="Camera calibration using chessboard images (no ArUco).")
-    parser.add_argument("--images", default=r"D:\work\hakaton 2026\cod\photo\*.jpg",
-                        help=r'Glob pattern, e.g. "D:\work\hakaton 2026\cod\photo\*.jpg"')
+    parser.add_argument("--images", default=r"C:\Users\Admin\Desktop\photo\*jpg",
+                        help=r'Glob pattern, e.g. "D:\work\hakaton 2026\cod\photo\*.jpg"') #путь указать на малинке пользователем.
     parser.add_argument("--pattern_size", type=str, default="9x6",
                         help="Chessboard inner corners as WxH, e.g. 9x6 (INNER corners, not squares).")
     parser.add_argument("--square_size", type=float, default=0.04,
