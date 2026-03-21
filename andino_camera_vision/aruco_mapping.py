@@ -70,6 +70,15 @@ for r in range(ROWS):
 class ArucoMappingNode(Node):
     def __init__(self):
         super().__init__('aruco_mapping')
+       
+        self.last_ids_4x4 = set()
+       
+        def image_callback(self, image):
+        ids_4x4 = self.detect_ids(image)  # method for detecting ids
+        if ids_4x4 is not None:
+            self.last_ids_4x4 = set(int(x) for x in ids_4x4.flatten())
+        else:
+            self.last_ids_4x4 = set()  # reset if no ids detected
 
         self.bridge = CvBridge()
 
@@ -428,8 +437,9 @@ class ArucoMappingNode(Node):
         """
         # Проверяем: есть ли маркер в клетке [3][2]?
         center_marker_id = self.map_aruco[3][2]
-        if center_marker_id > 0 and center_marker_id in self.aruco_id_to_cell:
-            self.game_started = True
+        if center_marker_id > 0 and center_marker_id in self.last_ids_4x4:
+            self.game_started = True  # change game_started logic
+        # Keep other logic unchanged
 
         # Определяем сторону робота
         if self.robot_cell[0] >= 0:
