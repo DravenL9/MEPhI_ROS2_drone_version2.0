@@ -41,13 +41,15 @@ import cv2
 import numpy as np
 import cv2.aruco as aruco
 
-
 # ============================================================================
 # КОНФИГУРАЦИЯ КАРТЫ
 # ============================================================================
 ROWS = 7
 COLS = 5
 CELL_SIZE_MM = 250.0  # Размер клетки и маркера в мм
+
+# IDs ArUco, которые принадлежат игровым объектам, а не карте
+SKIP_MARKER_IDS = {20, 21}
 
 # Шахматный порядок: 0 — чёрная (нет маркера), 1 — белая (есть маркер)
 # Строка 0 начинается с 0: [0, 1, 0, 1, 0]
@@ -76,10 +78,8 @@ class ArucoMappingNode(Node):
         self.map2 = None
         self.use_undistort = True
         self.load_calibration("camera_calib.yml")
-       
+
         self.last_ids_4x4 = set()
-       
-        
 
         self.bridge = CvBridge()
 
@@ -137,6 +137,7 @@ class ArucoMappingNode(Node):
 
         # Последние game_objects из game_detect
         self.current_game_objects = []
+        self.localized_game_objects = []
 
         # ====================================================================
         # Подписки
@@ -194,17 +195,22 @@ class ArucoMappingNode(Node):
     # Callback: обработка кадра камеры
     # ========================================================================
     def image_callback(self, msg: Image):
-        if ids_4x4 is not None:
-          self.last_ids_4x4 = set(int(x) for x in ids_4x4.flatten())
-      else:
-          self.last_ids_4x4 = set()
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+
+        if self.use_undistort and self.calib_loaded and self.map1 is not None:
+            frame = cv2.remap(frame, self.map1, self.map2, interpolation=cv2.INTER_LINEAR)
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # ---- Обнаружение маркеров 4x4 (карта) ----
         corners_4x4, ids_4x4, _ = aruco.detectMarkers(
             gray, self.aruco_dict_4x4, parameters=self.aruco_params_4x4
         )
+
+        if ids_4x4 is not None:
+            self.last_ids_4x4 = set(int(x) for x in ids_4x4.flatten())
+        else:
+            self.last_ids_4x4 = set()
 
         # ---- Обнаружение маркеров 6x6 (робот) ----
         corners_6x6, ids_6x6, _ = aruco.detectMarkers(
@@ -253,6 +259,9 @@ class ArucoMappingNode(Node):
         for i, marker_id in enumerate(ids_4x4.flatten()):
             marker_id = int(marker_id)
 
+            if marker_id in SKIP_MARKER_IDS:
+                continue
+
             # Центр маркера в пикселях
             c = corners_4x4[i][0]
             cx_px = float(np.mean(c[:, 0]))
@@ -261,11 +270,6 @@ class ArucoMappingNode(Node):
             if marker_id in self.aruco_id_to_cell:
                 row, col = self.aruco_id_to_cell[marker_id]
             else:
-                # Первый раз видим — надо определить позицию
-                # Назначаем по порядку обнаружения к свободным белым клеткам
-                # (при первоначальной калибровке маркеры назначаются вручную
-                #  или по конфигурации; для прототипа назначаем по ближайшей
-                #  идеальной позиции)
                 row, col = self._assign_marker_to_cell(cx_px, cy_px, marker_id)
                 if row < 0:
                     continue
@@ -290,6 +294,9 @@ class ArucoMappingNode(Node):
         Назначает маркер на ближайшую свободную белую клетку.
         Для продакшена лучше задать маппинг ID->клетка в конфигурации.
         """
+        if marker_id in SKIP_MARKER_IDS:
+            return (-1, -1)
+
         if not self.homography_valid:
             # Без гомографии назначаем последовательно
             # по списку белых клеток
@@ -429,6 +436,7 @@ class ArucoMappingNode(Node):
             localized_msg.objects.append(new_go)
 
         self.pub_localized.publish(localized_msg)
+        self.localized_game_objects = list(localized_msg.objects)
 
     # ========================================================================
     # Флаги игры
@@ -529,6 +537,32 @@ class ArucoMappingNode(Node):
                 text_marker.text = cell_label
                 marker_array.markers.append(text_marker)
 
+        # ---- Центры карты (сферы), показываем только при видимой карте ----
+        if self.homography_valid and len(self.last_ids_4x4) > 0:
+            for r in range(ROWS):
+                for c in range(COLS):
+                    center_marker = Marker()
+                    center_marker.header.frame_id = 'map'
+                    center_marker.header.stamp = self.get_clock().now().to_msg()
+                    center_marker.ns = 'grid_centers'
+                    center_marker.id = marker_id
+                    marker_id += 1
+                    center_marker.type = Marker.SPHERE
+                    center_marker.action = Marker.ADD
+
+                    wx, wy = self.aruco_map_coords[r][c]
+                    center_marker.pose.position.x = wx / 1000.0
+                    center_marker.pose.position.y = wy / 1000.0
+                    center_marker.pose.position.z = 0.02
+                    center_marker.pose.orientation.w = 1.0
+
+                    center_marker.scale.x = 0.03
+                    center_marker.scale.y = 0.03
+                    center_marker.scale.z = 0.03
+                    center_marker.color = ColorRGBA(r=0.0, g=1.0, b=1.0, a=0.9)
+
+                    marker_array.markers.append(center_marker)
+
         # ---- Маркер робота ----
         if self.robot_aruco_id >= 0:
             robot_marker = Marker()
@@ -572,7 +606,7 @@ class ArucoMappingNode(Node):
             marker_array.markers.append(robot_text)
 
         # ---- Объекты ----
-        for go in self.current_game_objects:
+        for go in self.localized_game_objects:
             if not go.localized:
                 continue
 
@@ -669,6 +703,25 @@ class ArucoMappingNode(Node):
         col = max(0, min(col, COLS - 1))
         row = max(0, min(row, ROWS - 1))
         return (row, col)
+
+    def load_calibration(self, path):
+        fs = cv2.FileStorage(path, cv2.FILE_STORAGE_READ)
+        if not fs.isOpened():
+            self.get_logger().warn(f"Calibration file not found: {path}")
+            return
+        K = fs.getNode("camera_matrix").mat()
+        D = fs.getNode("dist_coeffs").mat()
+        w = int(fs.getNode("image_width").real())
+        h = int(fs.getNode("image_height").real())
+        fs.release()
+
+        self.camera_matrix = K
+        self.dist_coeffs = D
+        self.map1, self.map2 = cv2.initUndistortRectifyMap(
+            K, D, None, K, (w, h), cv2.CV_16SC2
+        )
+        self.calib_loaded = True
+        self.get_logger().info("Camera calibration loaded")
 
 
 def main(args=None):
