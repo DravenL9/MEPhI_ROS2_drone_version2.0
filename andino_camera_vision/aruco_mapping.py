@@ -484,6 +484,12 @@ class ArucoMappingNode(Node):
         marker_array = MarkerArray()
         marker_id = 0
 
+        object_cells = {
+            (go.cell_row, go.cell_col)
+            for go in self.localized_game_objects
+            if go.localized and 0 <= go.cell_row < ROWS and 0 <= go.cell_col < COLS
+        }
+
         # ---- Сетка карты (квадраты) ----
         for r in range(ROWS):
             for c in range(COLS):
@@ -506,7 +512,9 @@ class ArucoMappingNode(Node):
                 marker.scale.y = CELL_SIZE_MM / 1000.0
                 marker.scale.z = 0.005  # тонкая плоскость
 
-                if CHESS_PATTERN[r][c] == 1:
+                if (r, c) in object_cells:
+                    marker.color = ColorRGBA(r=0.0, g=0.0, b=1.0, a=0.8)
+                elif CHESS_PATTERN[r][c] == 1:
                     # Белая клетка (маркер)
                     marker.color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=0.8)
                 else:
@@ -562,6 +570,30 @@ class ArucoMappingNode(Node):
                     center_marker.color = ColorRGBA(r=0.0, g=1.0, b=1.0, a=0.9)
 
                     marker_array.markers.append(center_marker)
+
+        # ---- ID видимых ArUco маркеров ----
+        for marker_id_value in sorted(self.last_ids_4x4):
+            if marker_id_value in self.aruco_id_to_cell:
+                row, col = self.aruco_id_to_cell[marker_id_value]
+                wx, wy = self.aruco_map_coords[row][col]
+
+                id_marker = Marker()
+                id_marker.header.frame_id = 'map'
+                id_marker.header.stamp = self.get_clock().now().to_msg()
+                id_marker.ns = 'visible_aruco_ids'
+                id_marker.id = marker_id
+                marker_id += 1
+                id_marker.type = Marker.TEXT_VIEW_FACING
+                id_marker.action = Marker.ADD
+                id_marker.pose.position.x = wx / 1000.0
+                id_marker.pose.position.y = wy / 1000.0
+                id_marker.pose.position.z = 0.08
+                id_marker.pose.orientation.w = 1.0
+                id_marker.scale.z = 0.06
+                id_marker.color = ColorRGBA(r=0.0, g=1.0, b=1.0, a=1.0)
+                id_marker.text = f'ID:{marker_id_value}'
+
+                marker_array.markers.append(id_marker)
 
         # ---- Маркер робота ----
         if self.robot_aruco_id >= 0:
@@ -637,6 +669,25 @@ class ArucoMappingNode(Node):
                 obj_marker.color = ColorRGBA(r=0.5, g=0.5, b=0.5, a=0.9)
 
             marker_array.markers.append(obj_marker)
+
+            # Текст с ID объекта
+            obj_text = Marker()
+            obj_text.header.frame_id = 'map'
+            obj_text.header.stamp = self.get_clock().now().to_msg()
+            obj_text.ns = 'game_object_ids'
+            obj_text.id = marker_id
+            marker_id += 1
+            obj_text.type = Marker.TEXT_VIEW_FACING
+            obj_text.action = Marker.ADD
+            obj_text.pose.position.x = go.world_x / 1000.0
+            obj_text.pose.position.y = go.world_y / 1000.0
+            obj_text.pose.position.z = 0.12
+            obj_text.pose.orientation.w = 1.0
+            obj_text.scale.z = 0.06
+            obj_text.color = ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0)
+            obj_text.text = f'ID:{go.object_id}'
+
+            marker_array.markers.append(obj_text)
 
         # ---- Линии разделения: A / B ----
         divider = Marker()
