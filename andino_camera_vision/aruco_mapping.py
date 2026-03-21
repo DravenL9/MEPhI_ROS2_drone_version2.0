@@ -73,12 +73,7 @@ class ArucoMappingNode(Node):
        
         self.last_ids_4x4 = set()
        
-        def image_callback(self, image):
-        ids_4x4 = self.detect_ids(image)  # method for detecting ids
-        if ids_4x4 is not None:
-            self.last_ids_4x4 = set(int(x) for x in ids_4x4.flatten())
-        else:
-            self.last_ids_4x4 = set()  # reset if no ids detected
+        
 
         self.bridge = CvBridge()
 
@@ -193,6 +188,10 @@ class ArucoMappingNode(Node):
     # Callback: обработка кадра камеры
     # ========================================================================
     def image_callback(self, msg: Image):
+        if ids_4x4 is not None:
+          self.last_ids_4x4 = set(int(x) for x in ids_4x4.flatten())
+      else:
+          self.last_ids_4x4 = set()
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
