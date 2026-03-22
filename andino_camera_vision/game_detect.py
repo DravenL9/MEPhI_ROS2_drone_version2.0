@@ -2,7 +2,7 @@
 """
 game_detect — нода ROS2 для обнаружения и классификации игровых объектов.
 
-Подписывается на топик /objects от find_object_2d,
+Подписывается на топик /objects от find_object_2d и /aruco_objects,
 вычисляет центр каждого объекта через гомографию,
 проставляет состояние ("field"/"basket") и стоимость,
 публикует результаты в /game_objects.
@@ -18,6 +18,8 @@ from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
 from game_vision.msg import GameObject, GameObjectArray
 import numpy as np
+
+SKIP_FIND_OBJECT_IDS = {1, 2, 20, 21}  # object_id 1/2 (ArUco 20/21) и защитный пропуск 20/21
 
 
 class GameDetectNode(Node):
@@ -49,11 +51,22 @@ class GameDetectNode(Node):
 
         self.get_logger().info(f'Object cost table: {self.object_costs}')
 
+        self.find_object_objects = []
+        self.aruco_objects = []
+
         # Подписка на топик /objects от find_object_2d
         self.subscription = self.create_subscription(
             Float32MultiArray,
             '/objects',
             self.objects_callback,
+            10
+        )
+
+        # Подписка на центры ArUco-объектов (ID 20/21)
+        self.aruco_subscription = self.create_subscription(
+            GameObjectArray,
+            '/aruco_objects',
+            self.aruco_objects_callback,
             10
         )
 
@@ -84,11 +97,13 @@ class GameDetectNode(Node):
         VALUES_PER_OBJECT = 12
         num_objects = len(data) // VALUES_PER_OBJECT
 
-        game_objects_msg = GameObjectArray()
+        self.find_object_objects = []
 
         for i in range(num_objects):
             offset = i * VALUES_PER_OBJECT
             obj_id = int(data[offset])
+            if obj_id in SKIP_FIND_OBJECT_IDS:
+                continue
             obj_width = data[offset + 1]
             obj_height = data[offset + 2]
 
@@ -115,26 +130,45 @@ class GameDetectNode(Node):
             state = 'field'
             cost = self._get_cost(obj_id, state)
 
-            # Формируем сообщение
-            go = GameObject()
-            go.object_id = obj_id
-            go.state = state
-            go.cost = int(cost)
-            go.pixel_x = float(pixel_x)
-            go.pixel_y = float(pixel_y)
-            go.world_x = 0.0
-            go.world_y = 0.0
-            go.cell_row = -1
-            go.cell_col = -1
-            go.cell_id = -1
-            go.localized = False
-
-            game_objects_msg.objects.append(go)
+            go = self._build_game_object(obj_id, pixel_x, pixel_y, state)
+            self.find_object_objects.append(go)
 
             self.get_logger().debug(
                 f'Object id={obj_id} state={state} cost={cost} '
                 f'pixel=({pixel_x:.1f}, {pixel_y:.1f})'
             )
+
+        self._publish_combined_objects()
+
+    def aruco_objects_callback(self, msg: GameObjectArray):
+        self.aruco_objects = []
+        for go in msg.objects:
+            state = go.state if go.state else 'field'
+            self.aruco_objects.append(
+                self._build_game_object(go.object_id, go.pixel_x, go.pixel_y, state)
+            )
+        self._publish_combined_objects()
+
+    def _build_game_object(self, obj_id: int, pixel_x: float, pixel_y: float, state: str) -> GameObject:
+        cost = self._get_cost(obj_id, state)
+        go = GameObject()
+        go.object_id = obj_id
+        go.state = state
+        go.cost = int(cost)
+        go.pixel_x = float(pixel_x)
+        go.pixel_y = float(pixel_y)
+        go.world_x = 0.0
+        go.world_y = 0.0
+        go.cell_row = -1
+        go.cell_col = -1
+        go.cell_id = -1
+        go.localized = False
+        return go
+
+    def _publish_combined_objects(self):
+        game_objects_msg = GameObjectArray()
+        game_objects_msg.objects.extend(self.find_object_objects)
+        game_objects_msg.objects.extend(self.aruco_objects)
 
         if game_objects_msg.objects:
             self.publisher.publish(game_objects_msg)

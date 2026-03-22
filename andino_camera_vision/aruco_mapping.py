@@ -12,6 +12,7 @@ aruco_mapping — нода ROS2 для работы с ArUco-картой.
 5. Публикует маркеры в /visualization_marker_array для rviz.
 6. Публикует обновлённые объекты с привязкой к клеткам в /game_objects_localized.
 7. Публикует GameStatus с флагами игры.
+8. Публикует центры ArUco-маркеров объектов в /aruco_objects.
 
 Карта (из изображения):
   Строка 0: A1  [m]  A   [m]  A3     (верх, сторона A)
@@ -40,6 +41,7 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import cv2.aruco as aruco
+import math
 
 # ============================================================================
 # КОНФИГУРАЦИЯ КАРТЫ
@@ -47,9 +49,16 @@ import cv2.aruco as aruco
 ROWS = 7
 COLS = 5
 CELL_SIZE_MM = 250.0  # Размер клетки и маркера в мм
+EPSILON = 1e-6  # Защита от пограничных значений при делении/квантизации
 
-# IDs ArUco, которые принадлежат игровым объектам, а не карте
-SKIP_MARKER_IDS = {20, 21}
+# IDs ArUco, которые принадлежат игровым объектам, а не карте.
+# Сопоставление marker_id -> object_id соответствует ID из find_object_2d.
+ARUCO_OBJECT_ID_MAP = {
+    20: 1,  # Белый куб с маркером 20 -> object_id=1
+    21: 2,  # Белый куб с маркером 21 -> object_id=2
+}
+ARUCO_OBJECT_MARKER_IDS = set(ARUCO_OBJECT_ID_MAP.keys())
+SKIP_MARKER_IDS = ARUCO_OBJECT_MARKER_IDS
 
 # Шахматный порядок: 0 — чёрная (нет маркера), 1 — белая (есть маркер)
 # Строка 0 начинается с 0: [0, 1, 0, 1, 0]
@@ -106,11 +115,12 @@ class ArucoMappingNode(Node):
         self.aruco_map_coords = [[(0.0, 0.0)] * COLS for _ in range(ROWS)]
 
         # Заполняем идеальные координаты центров
-        # Начало координат — верхний левый угол карты
+        # Начало координат — левый нижний (bottom-left) угол карты.
+        # Это означает, что Y растёт вверх, а строка 0 (верх карты) имеет максимальный Y.
         for r in range(ROWS):
             for c in range(COLS):
                 cx = c * CELL_SIZE_MM + CELL_SIZE_MM / 2.0  # мм
-                cy = r * CELL_SIZE_MM + CELL_SIZE_MM / 2.0  # мм
+                cy = (ROWS - 1 - r) * CELL_SIZE_MM + CELL_SIZE_MM / 2.0  # мм
                 self.aruco_map_coords[r][c] = (cx, cy)
 
         # Словарь: aruco_id (4x4) -> (row, col) на карте
@@ -167,6 +177,9 @@ class ArucoMappingNode(Node):
         self.pub_debug_image = self.create_publisher(
             Image, '/aruco_debug_image', 10
         )
+        self.pub_aruco_objects = self.create_publisher(
+            GameObjectArray, '/aruco_objects', 10
+        )
 
         # Таймер для публикации визуализации (10 Hz)
         self.timer = self.create_timer(0.1, self.publish_visualization)
@@ -212,6 +225,8 @@ class ArucoMappingNode(Node):
         else:
             self.last_ids_4x4 = set()
 
+        self._publish_aruco_object_centers(corners_4x4, ids_4x4)
+
         # ---- Обнаружение маркеров 6x6 (робот) ----
         corners_6x6, ids_6x6, _ = aruco.detectMarkers(
             gray, self.aruco_dict_6x6, parameters=self.aruco_params_6x6
@@ -238,6 +253,8 @@ class ArucoMappingNode(Node):
             aruco.drawDetectedMarkers(debug_frame, corners_4x4, ids_4x4)
         if ids_6x6 is not None:
             aruco.drawDetectedMarkers(debug_frame, corners_6x6, ids_6x6)
+
+        self._draw_map_centers(debug_frame)
 
         debug_msg = self.bridge.cv2_to_imgmsg(debug_frame, encoding='bgr8')
         self.pub_debug_image.publish(debug_msg)
@@ -395,6 +412,69 @@ class ArucoMappingNode(Node):
                 self.robot_world = (world_pt[0], world_pt[1])
                 # Определяем клетку робота
                 self.robot_cell = self._find_cell(world_pt[0], world_pt[1])
+
+    # ========================================================================
+    # Обработка ArUco-маркеров на объектах (ID 20/21)
+    # ========================================================================
+    def _publish_aruco_object_centers(self, corners_4x4, ids_4x4):
+        """Публикует центры ArUco-маркеров объектов в /aruco_objects."""
+        aruco_objects_msg = GameObjectArray()
+
+        if ids_4x4 is not None:
+            for i, marker_id in enumerate(ids_4x4.flatten()):
+                marker_id = int(marker_id)
+                if marker_id not in ARUCO_OBJECT_ID_MAP:
+                    continue
+
+                c = corners_4x4[i][0]
+                cx_px = float(np.mean(c[:, 0]))
+                cy_px = float(np.mean(c[:, 1]))
+
+                go = GameObject()
+                go.object_id = ARUCO_OBJECT_ID_MAP[marker_id]
+                go.state = 'field'
+                go.cost = 0
+                go.pixel_x = cx_px
+                go.pixel_y = cy_px
+                go.world_x = 0.0
+                go.world_y = 0.0
+                go.cell_row = -1
+                go.cell_col = -1
+                go.cell_id = -1
+                go.localized = False
+
+                aruco_objects_msg.objects.append(go)
+
+        self.pub_aruco_objects.publish(aruco_objects_msg)
+
+    def _draw_map_centers(self, debug_frame):
+        """Рисует красные точки — центры карты, проецированные в пиксели."""
+        if not self.homography_valid or self.homography is None:
+            return
+
+        try:
+            homography_inv = np.linalg.inv(self.homography)
+        except np.linalg.LinAlgError:
+            return
+
+        height, width = debug_frame.shape[:2]
+        for r in range(ROWS):
+            for c in range(COLS):
+                wx, wy = self.aruco_map_coords[r][c]
+                pt_world = np.array([wx, wy, 1.0], dtype=np.float64)
+                pt_pixel = homography_inv @ pt_world
+                if abs(pt_pixel[2]) < EPSILON:
+                    continue
+                px = pt_pixel[0] / pt_pixel[2]
+                py = pt_pixel[1] / pt_pixel[2]
+                if 0 <= px < width and 0 <= py < height:
+                    cv2.circle(
+                        debug_frame,
+                        (int(round(px)), int(round(py))),
+                        4,
+                        (0, 0, 255),
+                        -1
+                    )
 
     # ========================================================================
     # Локализация game_objects
@@ -701,7 +781,11 @@ class ArucoMappingNode(Node):
         divider.scale.x = 0.01
         divider.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
 
-        y_div = 3.5 * CELL_SIZE_MM / 1000.0  # между строками 3 и 4
+        if ROWS > 4:
+            y_div_mm = (self.aruco_map_coords[3][0][1] + self.aruco_map_coords[4][0][1]) / 2.0
+            y_div = y_div_mm / 1000.0
+        else:
+            y_div = 3.5 * CELL_SIZE_MM / 1000.0  # между строками 3 и 4
         p1 = Point()
         p1.x = 0.0
         p1.y = y_div
@@ -714,7 +798,13 @@ class ArucoMappingNode(Node):
         marker_array.markers.append(divider)
 
         # Метки A и B
-        for label, y_pos in [('A', 1.5), ('B', 5.5)]:
+        center_row = ROWS // 2
+        label_rows = {
+            'A': max(0, center_row - 2),
+            'B': min(ROWS - 1, center_row + 2),
+        }
+        for label, row in label_rows.items():
+            y_pos = self.aruco_map_coords[row][0][1] / 1000.0
             lm = Marker()
             lm.header.frame_id = 'map'
             lm.header.stamp = self.get_clock().now().to_msg()
@@ -724,7 +814,7 @@ class ArucoMappingNode(Node):
             lm.type = Marker.TEXT_VIEW_FACING
             lm.action = Marker.ADD
             lm.pose.position.x = -0.1
-            lm.pose.position.y = y_pos * CELL_SIZE_MM / 1000.0
+            lm.pose.position.y = y_pos
             lm.pose.position.z = 0.1
             lm.pose.orientation.w = 1.0
             lm.scale.z = 0.15
@@ -749,10 +839,22 @@ class ArucoMappingNode(Node):
 
     def _find_cell(self, world_x, world_y):
         """Определяет клетку (row, col) по мировым координатам (мм)."""
-        col = int(world_x / CELL_SIZE_MM)
-        row = int(world_y / CELL_SIZE_MM)
-        col = max(0, min(col, COLS - 1))
-        row = max(0, min(row, ROWS - 1))
+        out_of_bounds = (
+            world_x < 0
+            or world_y < 0
+            or world_x >= COLS * CELL_SIZE_MM
+            or world_y >= ROWS * CELL_SIZE_MM
+        )
+        if out_of_bounds:
+            self.get_logger().debug(
+                f'World point вне карты: ({world_x:.1f}, {world_y:.1f})'
+            )
+        world_x_clamped = min(max(world_x, 0.0), COLS * CELL_SIZE_MM - EPSILON)
+        world_y_clamped = min(max(world_y, 0.0), ROWS * CELL_SIZE_MM - EPSILON)
+        col_raw = math.floor(world_x_clamped / CELL_SIZE_MM)
+        row_raw = ROWS - 1 - math.floor(world_y_clamped / CELL_SIZE_MM)
+        col = max(0, min(col_raw, COLS - 1))
+        row = max(0, min(row_raw, ROWS - 1))
         return (row, col)
 
     def load_calibration(self, path):
