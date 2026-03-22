@@ -41,6 +41,7 @@ from cv_bridge import CvBridge
 import cv2
 import numpy as np
 import cv2.aruco as aruco
+import math
 
 # ============================================================================
 # КОНФИГУРАЦИЯ КАРТЫ
@@ -836,8 +837,8 @@ class ArucoMappingNode(Node):
 
     def _find_cell(self, world_x, world_y):
         """Определяет клетку (row, col) по мировым координатам (мм)."""
-        col_raw = int(world_x / CELL_SIZE_MM)
-        row_raw = ROWS - 1 - int(world_y / CELL_SIZE_MM)  # int() работает как floor
+        col_raw = math.floor(world_x / CELL_SIZE_MM)
+        row_raw = ROWS - 1 - math.floor(world_y / CELL_SIZE_MM)
         if (
             world_x < 0
             or world_y < 0
