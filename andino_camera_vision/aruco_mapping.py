@@ -778,7 +778,7 @@ class ArucoMappingNode(Node):
         divider.scale.x = 0.01
         divider.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
 
-        if ROWS >= 5:
+        if ROWS > 4:
             y_div_mm = (self.aruco_map_coords[3][0][1] + self.aruco_map_coords[4][0][1]) / 2.0
             y_div = y_div_mm / 1000.0
         else:
@@ -795,9 +795,10 @@ class ArucoMappingNode(Node):
         marker_array.markers.append(divider)
 
         # Метки A и B
+        center_row = ROWS // 2
         label_rows = {
-            'A': max(0, ROWS // 4),
-            'B': min(ROWS - 1, (3 * ROWS) // 4),
+            'A': max(0, center_row - 2),
+            'B': min(ROWS - 1, center_row + 2),
         }
         for label, row in label_rows.items():
             y_pos = self.aruco_map_coords[row][0][1] / 1000.0
@@ -836,7 +837,7 @@ class ArucoMappingNode(Node):
     def _find_cell(self, world_x, world_y):
         """Определяет клетку (row, col) по мировым координатам (мм)."""
         col_raw = int(world_x / CELL_SIZE_MM)
-        row_raw = ROWS - 1 - int(world_y / CELL_SIZE_MM)
+        row_raw = ROWS - 1 - int(world_y / CELL_SIZE_MM)  # int() работает как floor
         if (
             world_x < 0
             or world_y < 0
