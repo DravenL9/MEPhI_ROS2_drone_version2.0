@@ -19,7 +19,7 @@ from std_msgs.msg import Float32MultiArray
 from game_vision.msg import GameObject, GameObjectArray
 import numpy as np
 
-SKIP_FIND_OBJECT_IDS = {1, 2, 20, 21}  # find_object IDs и возможные ArUco ID
+SKIP_FIND_OBJECT_IDS = {1, 2, 20, 21}  # object_id 1/2 соответствуют ArUco 20/21
 
 
 class GameDetectNode(Node):

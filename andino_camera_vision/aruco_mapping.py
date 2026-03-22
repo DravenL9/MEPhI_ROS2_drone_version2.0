@@ -113,7 +113,7 @@ class ArucoMappingNode(Node):
         self.aruco_map_coords = [[(0.0, 0.0)] * COLS for _ in range(ROWS)]
 
         # Заполняем идеальные координаты центров
-        # Начало координат — левый нижний угол карты
+        # Начало координат — левый нижний (bottom-left) угол карты
         for r in range(ROWS):
             for c in range(COLS):
                 cx = c * CELL_SIZE_MM + CELL_SIZE_MM / 2.0  # мм
@@ -835,10 +835,19 @@ class ArucoMappingNode(Node):
 
     def _find_cell(self, world_x, world_y):
         """Определяет клетку (row, col) по мировым координатам (мм)."""
-        col = int(world_x / CELL_SIZE_MM)
-        row = ROWS - 1 - int(world_y / CELL_SIZE_MM)
-        col = max(0, min(col, COLS - 1))
-        row = max(0, min(row, ROWS - 1))
+        col_raw = int(world_x / CELL_SIZE_MM)
+        row_raw = ROWS - 1 - int(world_y / CELL_SIZE_MM)
+        if (
+            world_x < 0
+            or world_y < 0
+            or world_x >= COLS * CELL_SIZE_MM
+            or world_y >= ROWS * CELL_SIZE_MM
+        ):
+            self.get_logger().debug(
+                f'World point вне карты: ({world_x:.1f}, {world_y:.1f})'
+            )
+        col = max(0, min(col_raw, COLS - 1))
+        row = max(0, min(row_raw, ROWS - 1))
         return (row, col)
 
     def load_calibration(self, path):
