@@ -19,7 +19,7 @@ from std_msgs.msg import Float32MultiArray
 from game_vision.msg import GameObject, GameObjectArray
 import numpy as np
 
-ARUCO_OBJECT_IDS = {1, 2}
+SKIP_FIND_OBJECT_IDS = {1, 2, 20, 21}  # find_object IDs и возможные ArUco ID
 
 
 class GameDetectNode(Node):
@@ -102,7 +102,7 @@ class GameDetectNode(Node):
         for i in range(num_objects):
             offset = i * VALUES_PER_OBJECT
             obj_id = int(data[offset])
-            if obj_id in ARUCO_OBJECT_IDS:
+            if obj_id in SKIP_FIND_OBJECT_IDS:
                 continue
             obj_width = data[offset + 1]
             obj_height = data[offset + 2]
@@ -141,10 +141,12 @@ class GameDetectNode(Node):
         self._publish_combined_objects()
 
     def aruco_objects_callback(self, msg: GameObjectArray):
-        self.aruco_objects = [
-            self._build_game_object(go.object_id, go.pixel_x, go.pixel_y, 'field')
-            for go in msg.objects
-        ]
+        self.aruco_objects = []
+        for go in msg.objects:
+            state = go.state if go.state else 'field'
+            self.aruco_objects.append(
+                self._build_game_object(go.object_id, go.pixel_x, go.pixel_y, state)
+            )
         self._publish_combined_objects()
 
     def _build_game_object(self, obj_id: int, pixel_x: float, pixel_y: float, state: str) -> GameObject:

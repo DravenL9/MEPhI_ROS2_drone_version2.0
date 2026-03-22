@@ -49,13 +49,14 @@ ROWS = 7
 COLS = 5
 CELL_SIZE_MM = 250.0  # Размер клетки и маркера в мм
 
-# IDs ArUco, которые принадлежат игровым объектам, а не карте
+# IDs ArUco, которые принадлежат игровым объектам, а не карте.
+# Маппинг marker_id -> object_id соответствует ID из find_object_2d.
 ARUCO_OBJECT_ID_MAP = {
     20: 1,  # Белый куб с маркером 20 -> object_id=1
     21: 2,  # Белый куб с маркером 21 -> object_id=2
 }
 ARUCO_OBJECT_MARKER_IDS = set(ARUCO_OBJECT_ID_MAP.keys())
-SKIP_MARKER_IDS = set(ARUCO_OBJECT_MARKER_IDS)
+SKIP_MARKER_IDS = ARUCO_OBJECT_MARKER_IDS
 
 # Шахматный порядок: 0 — чёрная (нет маркера), 1 — белая (есть маркер)
 # Строка 0 начинается с 0: [0, 1, 0, 1, 0]
@@ -777,7 +778,7 @@ class ArucoMappingNode(Node):
         divider.scale.x = 0.01
         divider.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
 
-        if 0 <= 3 < ROWS and 0 <= 4 < ROWS:
+        if ROWS >= 5:
             y_div_mm = (self.aruco_map_coords[3][0][1] + self.aruco_map_coords[4][0][1]) / 2.0
             y_div = y_div_mm / 1000.0
         else:
@@ -794,7 +795,10 @@ class ArucoMappingNode(Node):
         marker_array.markers.append(divider)
 
         # Метки A и B
-        label_rows = {'A': 1, 'B': 5}
+        label_rows = {
+            'A': max(0, ROWS // 4),
+            'B': min(ROWS - 1, (3 * ROWS) // 4),
+        }
         for label, row in label_rows.items():
             y_pos = self.aruco_map_coords[row][0][1] / 1000.0
             lm = Marker()
