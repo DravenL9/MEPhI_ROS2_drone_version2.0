@@ -461,7 +461,7 @@ class ArucoMappingNode(Node):
                 wx, wy = self.aruco_map_coords[r][c]
                 pt_world = np.array([wx, wy, 1.0], dtype=np.float64)
                 pt_pixel = homography_inv @ pt_world
-                if abs(pt_pixel[2]) < 1e-9:
+                if abs(pt_pixel[2]) < 1e-6:
                     continue
                 px = pt_pixel[0] / pt_pixel[2]
                 py = pt_pixel[1] / pt_pixel[2]
@@ -837,17 +837,20 @@ class ArucoMappingNode(Node):
 
     def _find_cell(self, world_x, world_y):
         """Определяет клетку (row, col) по мировым координатам (мм)."""
-        col_raw = math.floor(world_x / CELL_SIZE_MM)
-        row_raw = ROWS - 1 - math.floor(world_y / CELL_SIZE_MM)
-        if (
+        out_of_bounds = (
             world_x < 0
             or world_y < 0
             or world_x >= COLS * CELL_SIZE_MM
             or world_y >= ROWS * CELL_SIZE_MM
-        ):
+        )
+        if out_of_bounds:
             self.get_logger().debug(
                 f'World point вне карты: ({world_x:.1f}, {world_y:.1f})'
             )
+        world_x_clamped = min(max(world_x, 0.0), COLS * CELL_SIZE_MM - 1e-6)
+        world_y_clamped = min(max(world_y, 0.0), ROWS * CELL_SIZE_MM - 1e-6)
+        col_raw = math.floor(world_x_clamped / CELL_SIZE_MM)
+        row_raw = ROWS - 1 - math.floor(world_y_clamped / CELL_SIZE_MM)
         col = max(0, min(col_raw, COLS - 1))
         row = max(0, min(row_raw, ROWS - 1))
         return (row, col)
