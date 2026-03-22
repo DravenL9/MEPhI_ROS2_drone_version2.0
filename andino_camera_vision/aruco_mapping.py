@@ -49,9 +49,10 @@ import math
 ROWS = 7
 COLS = 5
 CELL_SIZE_MM = 250.0  # Размер клетки и маркера в мм
+EPSILON = 1e-6  # Защита от пограничных значений при делении/квантизации
 
 # IDs ArUco, которые принадлежат игровым объектам, а не карте.
-# Маппинг marker_id -> object_id соответствует ID из find_object_2d.
+# Сопоставление marker_id -> object_id соответствует ID из find_object_2d.
 ARUCO_OBJECT_ID_MAP = {
     20: 1,  # Белый куб с маркером 20 -> object_id=1
     21: 2,  # Белый куб с маркером 21 -> object_id=2
@@ -114,7 +115,8 @@ class ArucoMappingNode(Node):
         self.aruco_map_coords = [[(0.0, 0.0)] * COLS for _ in range(ROWS)]
 
         # Заполняем идеальные координаты центров
-        # Начало координат — левый нижний (bottom-left) угол карты
+        # Начало координат — левый нижний (bottom-left) угол карты.
+        # Это означает, что Y растёт вверх, а строка 0 (верх карты) имеет максимальный Y.
         for r in range(ROWS):
             for c in range(COLS):
                 cx = c * CELL_SIZE_MM + CELL_SIZE_MM / 2.0  # мм
@@ -461,7 +463,7 @@ class ArucoMappingNode(Node):
                 wx, wy = self.aruco_map_coords[r][c]
                 pt_world = np.array([wx, wy, 1.0], dtype=np.float64)
                 pt_pixel = homography_inv @ pt_world
-                if abs(pt_pixel[2]) < 1e-6:
+                if abs(pt_pixel[2]) < EPSILON:
                     continue
                 px = pt_pixel[0] / pt_pixel[2]
                 py = pt_pixel[1] / pt_pixel[2]
@@ -847,8 +849,8 @@ class ArucoMappingNode(Node):
             self.get_logger().debug(
                 f'World point вне карты: ({world_x:.1f}, {world_y:.1f})'
             )
-        world_x_clamped = min(max(world_x, 0.0), COLS * CELL_SIZE_MM - 1e-6)
-        world_y_clamped = min(max(world_y, 0.0), ROWS * CELL_SIZE_MM - 1e-6)
+        world_x_clamped = min(max(world_x, 0.0), COLS * CELL_SIZE_MM - EPSILON)
+        world_y_clamped = min(max(world_y, 0.0), ROWS * CELL_SIZE_MM - EPSILON)
         col_raw = math.floor(world_x_clamped / CELL_SIZE_MM)
         row_raw = ROWS - 1 - math.floor(world_y_clamped / CELL_SIZE_MM)
         col = max(0, min(col_raw, COLS - 1))
